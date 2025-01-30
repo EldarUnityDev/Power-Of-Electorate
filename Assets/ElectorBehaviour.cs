@@ -60,7 +60,7 @@ public class ElectorBehaviour : MonoBehaviour
         }
 
         //voting mechanics
-        if (timeBeforeVote > 0)
+        if (!myBody.activeInHierarchy && timeBeforeVote > 0)
         {
             timeBeforeVote -= Time.deltaTime;
         }
