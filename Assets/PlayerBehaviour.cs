@@ -13,9 +13,15 @@ public class PlayerBehaviour : MonoBehaviour
     public bool pantsOnFire; //must run a lap
     public bool canPromote;  //useable on electors disabled
 
+    private void Awake()
+    {
+        References.thePlayer = this;
+    }
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody>();
+        References.pointsForPlayerCandidate = 0;
+        References.pointsForOppositeCandidate = 0;
     }
 
     void Update()
@@ -49,8 +55,12 @@ public class PlayerBehaviour : MonoBehaviour
             //References.canvas.usePromptSignal = true;
             if (Input.GetButtonDown("Use"))
             {
-                nearestElectorSoFar.TurnMe(GetComponent<PlayerBehaviour>());
+                nearestElectorSoFar.JoinTalk(GetComponent<PlayerBehaviour>());
             }
+        }
+        if(References.electors.Count == 0)
+        {
+            Debug.Log("Election Results: " + References.pointsForPlayerCandidate + ":" + References.pointsForOppositeCandidate);
         }
     }
 }

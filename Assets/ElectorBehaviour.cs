@@ -2,15 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
 
 public class ElectorBehaviour : MonoBehaviour
 {
     public bool neutralMood;
+    public bool inTalkWithPlayer;
     NavMeshAgent agent;
+    public float talkTime;
+
+    public bool timeToVote;
+    public float timeBeforeVote;
 
     public GameObject myBody;
     public GameObject candidate1Body;
     public GameObject candidate2Body;
+    public bool voted;
     private void Awake()
     {
         References.electors.Add(this);
@@ -20,6 +27,7 @@ public class ElectorBehaviour : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        talkTime = 2;
     }
 
     void Update()
@@ -32,6 +40,62 @@ public class ElectorBehaviour : MonoBehaviour
                 GoToRandomNavPoint();
             }
         }
+        if (!agent.enabled)
+        {
+            if (inTalkWithPlayer && Vector3.Distance(transform.position, References.thePlayer.transform.position) > 2)
+            {
+                LeaveTalk();
+            }
+        }
+        if (inTalkWithPlayer)
+        {
+            talkTime -= Time.deltaTime;
+            if (talkTime < 0)
+            {
+                TurnMe(References.thePlayer.GetComponent<PlayerBehaviour>());
+                LeaveTalk();
+                talkTime = 2;  //сбрасываем таймер для следующего разговора
+                inTalkWithPlayer = false; // закончили разговор
+            }
+        }
+
+        //voting mechanics
+        if (timeBeforeVote > 0)
+        {
+            timeBeforeVote -= Time.deltaTime;
+        }
+        else
+        {
+            timeToVote = true;
+            References.targetElectors.Remove(this); //don't turn me anymore
+        }
+        if (timeToVote) //I go vote
+        {
+            if (agent.enabled)
+            {
+                agent.destination = References.votingPost.transform.position;
+                if (agent.remainingDistance < 2)
+                {
+                    if (!voted)
+                    {
+                        if (candidate1Body.activeInHierarchy)
+                        {
+                            References.pointsForOppositeCandidate++;
+
+                        }
+                        else { References.pointsForPlayerCandidate++; }
+                    }
+
+                    timeToVote = false;
+                    agent.destination = References.leaveArea.transform.position;
+                    voted = true;
+                }
+            }
+        }
+        if (voted && Vector3.Distance(transform.position, References.leaveArea.transform.position) < 1)
+        {
+            Destroy(gameObject);
+        }
     }
     void GoToRandomNavPoint()
     {
@@ -43,7 +107,6 @@ public class ElectorBehaviour : MonoBehaviour
         myBody.SetActive(false);
         if (playerContacted != null)
         {
-            Debug.Log("player got me");
             candidate2Body.SetActive(true);
             if (candidate1Body.activeInHierarchy)
             {
@@ -52,19 +115,29 @@ public class ElectorBehaviour : MonoBehaviour
             }
 
         }
-        else {
+        else
+        {
             candidate2Body.SetActive(false);
-            candidate1Body.SetActive(true); 
+            candidate1Body.SetActive(true);
         }
     }
-    public void JoinTalk()
+    public void JoinTalk(PlayerBehaviour playerContacted)
     {
         agent.enabled = false;
-
+        if (playerContacted != null)
+        {
+            inTalkWithPlayer = true;
+        }
     }
+
     public void LeaveTalk()
     {
         agent.enabled = true;
-
+        inTalkWithPlayer = false;
+    }
+    private void OnDestroy()
+    {
+        References.electors.Remove(this);
+        References.targetElectors.Remove(this);
     }
 }

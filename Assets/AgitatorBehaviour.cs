@@ -68,7 +68,7 @@ public class AgitatorBehaviour : MonoBehaviour
                 talking = true; //запускаем таймер на разговор
                                 //startTurning{agent.enabled = false;}
                 agent.enabled = false;
-                myTarget.JoinTalk();
+                myTarget.JoinTalk(null);
                 
             }
             if(talking)
@@ -87,6 +87,11 @@ public class AgitatorBehaviour : MonoBehaviour
                     agent.enabled = true;
                 }
             }
+        }
+        if (References.targetElectors.Count == 0)
+        {
+            agent.enabled = false;
+            transform.position += Vector3.up * Time.deltaTime;
         }
     }
 }
