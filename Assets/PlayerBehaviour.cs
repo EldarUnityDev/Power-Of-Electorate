@@ -28,29 +28,28 @@ public class PlayerBehaviour : MonoBehaviour
         }
 
         //use the nearest usable
-        Useable nearestUseableSoFar = null;
-        float nearestDistance = 3; //max pickup distance
-        foreach (Useable thisUseable in References.useables)
+        ElectorBehaviour nearestElectorSoFar = null;
+        float nearestDistance = 1.5f; //max turn distance
+        foreach (ElectorBehaviour thisElector in References.electors)
         {
             //how far is this one from the player?
-            float thisDistance = Vector3.Distance(transform.position, thisUseable.transform.position);
+            float thisDistance = Vector3.Distance(transform.position, thisElector.transform.position);
             //is it closer than anything else we've found?
             if (thisDistance <= nearestDistance)
             {
                 //if it's THIS now it's the closest one
-                nearestUseableSoFar = thisUseable;
+                nearestElectorSoFar = thisElector;
                 nearestDistance = thisDistance;
             }
-            //+++ challenge - check if it's in front of us
         }
 
-        if (nearestUseableSoFar != null)
+        if (nearestElectorSoFar != null)
         {
             //show USE prompt
             //References.canvas.usePromptSignal = true;
             if (Input.GetButtonDown("Use"))
             {
-                nearestUseableSoFar.Use();
+                nearestElectorSoFar.TurnMe(GetComponent<PlayerBehaviour>());
             }
         }
     }

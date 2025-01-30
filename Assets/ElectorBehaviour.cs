@@ -11,7 +11,12 @@ public class ElectorBehaviour : MonoBehaviour
     public GameObject myBody;
     public GameObject candidate1Body;
     public GameObject candidate2Body;
+    private void Awake()
+    {
+        References.electors.Add(this);
+        References.targetElectors.Add(this);
 
+    }
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -33,10 +38,33 @@ public class ElectorBehaviour : MonoBehaviour
         int randomNavPointIndex = Random.Range(0, References.spawnPoints.Count);
         agent.destination = References.spawnPoints[randomNavPointIndex].transform.position;
     }
-    public void TurnMe()
+    public void TurnMe(PlayerBehaviour playerContacted)
     {
         myBody.SetActive(false);
-        candidate1Body.SetActive(true);
+        if (playerContacted != null)
+        {
+            Debug.Log("player got me");
+            candidate2Body.SetActive(true);
+            if (candidate1Body.activeInHierarchy)
+            {
+                candidate1Body.SetActive(false);
+                References.targetElectors.Add(this);
+            }
+
+        }
+        else {
+            candidate2Body.SetActive(false);
+            candidate1Body.SetActive(true); 
+        }
+    }
+    public void JoinTalk()
+    {
+        agent.enabled = false;
+
+    }
+    public void LeaveTalk()
+    {
+        agent.enabled = true;
 
     }
 }
