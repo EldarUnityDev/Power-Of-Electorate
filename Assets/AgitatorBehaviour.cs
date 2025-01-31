@@ -11,11 +11,13 @@ public class AgitatorBehaviour : MonoBehaviour
     public bool targetAcquired;
     public bool talking;
     public float talkTime;
-
+    public bool readyToWork;
+    public float breakTimer;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         talkTime = 2;
+
     }
     public void ChooseTarget()
     {
@@ -52,7 +54,15 @@ public class AgitatorBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(!targetAcquired) //если нет цели
+        if (!readyToWork) //если на перерыве
+        {
+            breakTimer -= Time.deltaTime;
+            if(breakTimer < 0)
+            {
+                readyToWork = true;
+            }
+        }
+        if(!targetAcquired && readyToWork) //если нет цели
         {
             ChooseTarget(); //выбери
         }
@@ -85,11 +95,13 @@ public class AgitatorBehaviour : MonoBehaviour
                     talkTime = 2;  //сбрасываем таймер для следующего разговора
                     talking = false; // закончили разговор
                     agent.enabled = true;
+                    readyToWork = false; // делаем перерыв
                 }
             }
         }
         if (References.targetElectors.Count == 0)
         {
+            targetAcquired = false;
             agent.enabled = false;
             transform.position += Vector3.up * Time.deltaTime;
         }

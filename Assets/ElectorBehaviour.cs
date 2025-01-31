@@ -54,7 +54,7 @@ public class ElectorBehaviour : MonoBehaviour
             {
                 TurnMe(References.thePlayer.GetComponent<PlayerBehaviour>());
                 LeaveTalk();
-                talkTime = 2;  //сбрасываем таймер дл€ следующего разговора
+                talkTime = 1;  //сбрасываем таймер дл€ следующего разговора
                 inTalkWithPlayer = false; // закончили разговор
             }
         }
@@ -64,11 +64,13 @@ public class ElectorBehaviour : MonoBehaviour
         {
             timeBeforeVote -= Time.deltaTime;
         }
-        else
+        else if(timeBeforeVote < 0)
         {
             timeToVote = true;
             References.targetElectors.Remove(this); //don't turn me anymore
+            agent.enabled = true; //на случай, если говорим с агитатором
         }
+
         if (timeToVote) //I go vote
         {
             if (agent.enabled)
@@ -89,6 +91,7 @@ public class ElectorBehaviour : MonoBehaviour
                     timeToVote = false;
                     agent.destination = References.leaveArea.transform.position;
                     voted = true;
+                    
                 }
             }
         }
@@ -111,7 +114,10 @@ public class ElectorBehaviour : MonoBehaviour
             if (candidate1Body.activeInHierarchy)
             {
                 candidate1Body.SetActive(false);
-                References.targetElectors.Add(this);
+                if(References.targetElectors.Count != 0)//если игрок обращает не последнего
+                {
+                    References.targetElectors.Add(this);
+                }
             }
 
         }

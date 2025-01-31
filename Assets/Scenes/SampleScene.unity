@@ -922,6 +922,8 @@ MonoBehaviour:
   targetAcquired: 0
   talking: 0
   talkTime: 0
+  readyToWork: 0
+  breakTimer: 2
 --- !u!4 &305575172
 Transform:
   m_ObjectHideFlags: 0
@@ -1892,7 +1894,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 545675713}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Speed: 1.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -1942,7 +1944,7 @@ MonoBehaviour:
   inTalkWithPlayer: 0
   talkTime: 0
   timeToVote: 0
-  timeBeforeVote: 10
+  timeBeforeVote: 1
   myBody: {fileID: 1179168264}
   candidate1Body: {fileID: 1985364987}
   candidate2Body: {fileID: 522075256}
@@ -2722,7 +2724,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 848188791}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Speed: 1.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -2772,7 +2774,7 @@ MonoBehaviour:
   inTalkWithPlayer: 0
   talkTime: 0
   timeToVote: 0
-  timeBeforeVote: 10
+  timeBeforeVote: 1
   myBody: {fileID: 939473311}
   candidate1Body: {fileID: 623621111}
   candidate2Body: {fileID: 1971597158}
@@ -2853,7 +2855,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 897928102}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Speed: 1.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -2862,7 +2864,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 1
+  m_Height: 1.05
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -2903,7 +2905,7 @@ MonoBehaviour:
   inTalkWithPlayer: 0
   talkTime: 0
   timeToVote: 0
-  timeBeforeVote: 10
+  timeBeforeVote: 1
   myBody: {fileID: 1069678052}
   candidate1Body: {fileID: 671622445}
   candidate2Body: {fileID: 517222015}
@@ -4075,7 +4077,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1530224061}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Speed: 1.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -5168,7 +5170,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1998252026}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.8
   m_Speed: 1.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -5218,7 +5220,7 @@ MonoBehaviour:
   inTalkWithPlayer: 0
   talkTime: 0
   timeToVote: 0
-  timeBeforeVote: 10
+  timeBeforeVote: 1
   myBody: {fileID: 352345035}
   candidate1Body: {fileID: 1534960378}
   candidate2Body: {fileID: 590416224}
