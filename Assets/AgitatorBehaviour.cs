@@ -13,11 +13,23 @@ public class AgitatorBehaviour : MonoBehaviour
     public float talkTime;
     public bool readyToWork;
     public float breakTimer;
+    public float turnSpeed;
+    public float turnSpeedMultiplier;
+    public float flightSpeedMultiplier;
+
+    public bool coinFlipped;
+    public bool secretFlight;
+
+    public GameObject myBody;
+
+    AudioSource audioSource;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         talkTime = 2;
-
+        audioSource = GetComponent<AudioSource>();
+        flightSpeedMultiplier = 1;
     }
     public void ChooseTarget()
     {
@@ -45,11 +57,6 @@ public class AgitatorBehaviour : MonoBehaviour
                 targetAcquired = true;
             }
         }
-
-        /*int randomElectorIndex = Random.Range(0, References.electors.Count);
-        agent.destination = References.electors[randomElectorIndex].transform.position;*/
-
-
     }
     // Update is called once per frame
     void Update()
@@ -62,11 +69,15 @@ public class AgitatorBehaviour : MonoBehaviour
                 readyToWork = true;
             }
         }
-        if(!targetAcquired && readyToWork) //если нет цели
+        if(!targetAcquired && readyToWork && References.electors.Count > 0) //если нет цели
         {
             ChooseTarget(); //выбери
         }
-
+        if(References.electors.Count == 0 && myBody.activeInHierarchy)
+        {
+            agent.destination = References.levelManager.redFightersSpawns[Random.Range(0, References.levelManager.redFightersSpawns.Count)].transform.position;
+            //transform.position = References.levelManager.redFightersSpawns[Random.Range(0, References.levelManager.redFightersSpawns.Count)].transform.position;
+        }
         if (targetAcquired) //если есть цель
         {
             if (agent.enabled)
@@ -76,7 +87,6 @@ public class AgitatorBehaviour : MonoBehaviour
             if (!talking && Vector3.Distance(transform.position, myTarget.transform.position) < 1.3f) //если не говорим и мы достаточно близко
             {
                 talking = true; //запускаем таймер на разговор
-                                //startTurning{agent.enabled = false;}
                 agent.enabled = false;
                 myTarget.JoinTalk(null);
                 
@@ -96,14 +106,66 @@ public class AgitatorBehaviour : MonoBehaviour
                     talking = false; // закончили разговор
                     agent.enabled = true;
                     readyToWork = false; // делаем перерыв
+                    if(turnSpeedMultiplier > 7)
+                    {
+                        turnSpeedMultiplier = 5;
+                    }
                 }
             }
         }
+
+        if (agent.enabled == false)
+        {
+            //Rotate
+            Vector3 lateralOffset = transform.right * Time.deltaTime;
+            turnSpeedMultiplier += Time.deltaTime; //ускоряем
+            transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
+        }
+
         if (References.targetElectors.Count == 0)
         {
+            agent.enabled = true; //чтоб просто так не крутился
+
+            //flip the coin 0.1
+            //if gamesCount >=2
+            //set secretFlight
+            if (References.gamesCount >= 2)
+            {
+                if (!coinFlipped)
+                {
+                    float chance = Random.value;
+                    if (chance < 0.1) //если попадаем в 10% то будет секретный полёт
+                    {
+                        secretFlight = true;
+                    }
+                    coinFlipped = true;
+                }
+            }
             targetAcquired = false;
-            agent.enabled = false;
-            transform.position += Vector3.up * Time.deltaTime;
+            if (secretFlight)
+            {
+                agent.enabled = false;
+
+                if (!audioSource.isPlaying)
+                {
+                    audioSource.Play();
+                    audioSource.volume = 0;
+                }
+                flightSpeedMultiplier += Time.deltaTime * 0.2f; //ускоряем
+                transform.position += Vector3.up * Time.deltaTime * flightSpeedMultiplier;
+                if (transform.position.y < 8 && transform.position.y > 1)
+                {
+                    audioSource.volume += Time.deltaTime * 0.18f;
+                }
+                else
+                {
+                    audioSource.volume -= Time.deltaTime * 0.25f;
+                }
+                if (transform.position.y > 25)
+                {
+                    Destroy(gameObject);
+                }
+            }
         }
     }
 }

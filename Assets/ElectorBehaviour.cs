@@ -8,15 +8,20 @@ public class ElectorBehaviour : MonoBehaviour
 {
     public bool neutralMood;
     public bool inTalkWithPlayer;
+    //public bool inTalkWithEnemy;
     NavMeshAgent agent;
     public float talkTime;
+    public float turnSpeed;
+    public float turnSpeedMultiplier;
+
 
     public bool timeToVote;
     public float timeBeforeVote;
 
     public GameObject myBody;
-    public GameObject candidate1Body;
-    public GameObject candidate2Body;
+    public GameObject enemyCandidateBody;
+    public GameObject playerCandidateBody;
+    private GameObject myLeaveAreaObject;
     public bool voted;
     private void Awake()
     {
@@ -32,15 +37,17 @@ public class ElectorBehaviour : MonoBehaviour
 
     void Update()
     {
-        //Moving from navPoint to navPoint at Random
-        if (agent.enabled)
+        //если могу ходить и не проголосовал - гуляю
+        if (agent.enabled && !voted)
         {
             if (neutralMood && agent.remainingDistance < 2)
             {
                 GoToRandomNavPoint();
             }
         }
-        if (!agent.enabled)
+
+        //Взаимодействие с игроком
+        if (!agent.enabled) //значит кто-то остановил, если игрок, то измеряем дистанцию
         {
             if (inTalkWithPlayer && Vector3.Distance(transform.position, References.thePlayer.transform.position) > 2)
             {
@@ -54,77 +61,86 @@ public class ElectorBehaviour : MonoBehaviour
             {
                 TurnMe(References.thePlayer.GetComponent<PlayerBehaviour>());
                 LeaveTalk();
-                talkTime = 1;  //сбрасываем таймер для следующего разговора
                 inTalkWithPlayer = false; // закончили разговор
             }
         }
 
         //voting mechanics
-        if (!myBody.activeInHierarchy && timeBeforeVote > 0)
+        //если меня 1 раз переключили, иду голосовать после короткой задержки
+        if (!myBody.activeInHierarchy && !voted && timeBeforeVote > 0)
         {
             timeBeforeVote -= Time.deltaTime;
         }
-        else if(timeBeforeVote < 0)
+        else if(!voted && timeBeforeVote < 0)
         {
             timeToVote = true;
             References.targetElectors.Remove(this); //don't turn me anymore
-            agent.enabled = true; //на случай, если говорим с агитатором
+            agent.enabled = true; //на случай, если агитатор поймал, пока мы ожидали
         }
 
-        if (timeToVote) //I go vote
+        if (timeToVote) //если пора идти
         {
-            if (agent.enabled)
+            if (agent.enabled) //если не в разговоре
             {
-                agent.destination = References.votingPost.transform.position;
-                if (agent.remainingDistance < 2)
+                agent.destination = References.votingPost.transform.position; //идём к столу
+                if (Vector3.Distance(transform.position, References.votingPost.transform.position) < 1) //вручную считаем расстояние
                 {
                     if (!voted)
                     {
-                        if (candidate1Body.activeInHierarchy)
+                        if (enemyCandidateBody.activeInHierarchy)
                         {
                             References.pointsForOppositeCandidate++;
-
                         }
                         else { References.pointsForPlayerCandidate++; }
                     }
-
                     timeToVote = false;
-                    agent.destination = References.leaveArea.transform.position;
+                    myLeaveAreaObject = References.leaveAreaPoints[Random.Range(0, References.leaveAreaPoints.Count)].myBody;
+                    agent.destination = myLeaveAreaObject.transform.position;
                     voted = true;
-                    
+                    References.electors.Remove(this); //when VOTED - Ignore Player
+                    //if my body blue -> Make Bluer and same for RED
                 }
             }
         }
-        if (voted && Vector3.Distance(transform.position, References.leaveArea.transform.position) < 1)
+        if (voted && Vector3.Distance(transform.position, myLeaveAreaObject.transform.position) < 1)
         {
             Destroy(gameObject);
+        }
+        if(agent.enabled == false)
+        {
+            //Rotate
+            Vector3 lateralOffset = transform.right * Time.deltaTime;
+            turnSpeedMultiplier += Time.deltaTime; //ускоряем
+            transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
         }
     }
     void GoToRandomNavPoint()
     {
         int randomNavPointIndex = Random.Range(0, References.spawnPoints.Count);
-        agent.destination = References.spawnPoints[randomNavPointIndex].transform.position;
+        if(References.spawnPoints[randomNavPointIndex] != null) //чтобы не было ошибки на рестарте
+        {
+            agent.destination = References.spawnPoints[randomNavPointIndex].transform.position;
+        }
     }
     public void TurnMe(PlayerBehaviour playerContacted)
     {
         myBody.SetActive(false);
         if (playerContacted != null)
         {
-            candidate2Body.SetActive(true);
-            if (candidate1Body.activeInHierarchy)
+            playerCandidateBody.SetActive(true);
+            if (enemyCandidateBody.activeInHierarchy)
             {
-                candidate1Body.SetActive(false);
+                enemyCandidateBody.SetActive(false);
                 if(References.targetElectors.Count != 0)//если игрок обращает не последнего
                 {
                     References.targetElectors.Add(this);
                 }
             }
-
         }
         else
         {
-            candidate2Body.SetActive(false);
-            candidate1Body.SetActive(true);
+            playerCandidateBody.SetActive(false);
+            enemyCandidateBody.SetActive(true);
         }
     }
     public void JoinTalk(PlayerBehaviour playerContacted)
@@ -132,6 +148,7 @@ public class ElectorBehaviour : MonoBehaviour
         agent.enabled = false;
         if (playerContacted != null)
         {
+            References.thePlayer.canPromote = false;
             inTalkWithPlayer = true;
         }
     }
@@ -139,7 +156,19 @@ public class ElectorBehaviour : MonoBehaviour
     public void LeaveTalk()
     {
         agent.enabled = true;
-        inTalkWithPlayer = false;
+        if (inTalkWithPlayer)
+        {
+            inTalkWithPlayer = false;
+            References.thePlayer.canPromote = true;
+            References.thePlayer.turnSpeedMultiplier = 3;
+        }
+        talkTime = 2;  //сбрасываем таймер для следующего разговора
+        turnSpeedMultiplier = 2;
+        if (voted)
+        {
+            myLeaveAreaObject = References.leaveAreaPoints[Random.Range(0, References.leaveAreaPoints.Count)].myBody;
+            agent.destination = myLeaveAreaObject.transform.position;
+        }
     }
     private void OnDestroy()
     {

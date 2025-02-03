@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class SpawnPoint : MonoBehaviour
 {
+    public GameObject spawnPoint;
     private void OnEnable()
     {
         References.spawnPoints.Add(this);
     }
     void Start()
     {
-        
+        spawnPoint.GetComponent<MeshRenderer>().enabled = false;
     }
 
     // Update is called once per frame
