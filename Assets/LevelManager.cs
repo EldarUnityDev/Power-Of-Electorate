@@ -8,8 +8,8 @@ public class LevelManager : MonoBehaviour
 {
     //Меню
     public GameObject menuGameObject;
-    public GameObject tutorialText1;
-    public GameObject tutorialText2;
+    public GameObject tutorialText1; //*
+    public GameObject tutorialText2; //Recomended
     //Финальный бой
     public float timeBeforeShowdown;
     public GameObject RedTeamFighter;
@@ -43,13 +43,11 @@ public class LevelManager : MonoBehaviour
     {
         //В начале уровня сбрасываем изменения в навигации по этапам
         References.electionsEnded = false;
-        //References.fightEnded = false;
         graceTime = 1;
         References.fightEnded = false;
-        if (References.tutorialPlayed == false)
-        {
 
-        }
+        References.pointsForPlayerCandidate = 0;
+        References.pointsForOppositeCandidate = 0;
     }
     public void CreditsOnOff()
     {
@@ -168,6 +166,11 @@ public class LevelManager : MonoBehaviour
         agitator.GetComponent<FighterScript>().redBody.SetActive(true);
         agitator.GetComponent<FighterScript>().targetAcquired = false;
         agitator.GetComponent<AgitatorBehaviour>().myBody.SetActive(false);
+
+        References.thePlayer.GetComponent<PlayerBehaviour>().blueBody.SetActive(true);
+        References.thePlayer.GetComponent<PlayerBehaviour>().myBody.SetActive(false);
+        References.blueFighters.Add(References.thePlayer.GetComponent<FighterScript>());
+
 
         endScreenText.SetActive(false);
         endScreenButton.SetActive(false);

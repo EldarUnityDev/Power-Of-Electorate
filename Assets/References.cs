@@ -18,7 +18,6 @@ public static class References
     public static int pointsForPlayerCandidate;
     public static int pointsForOppositeCandidate;
     public static int gamesCount = 0;
-    public static bool tutorialPlayed = false;
 
     public static List<FighterScript> blueFighters = new List<FighterScript>();
     public static List<FighterScript> redFighters = new List<FighterScript>();
@@ -28,7 +27,4 @@ public static class References
 
     public static LevelManager levelManager;
 
-    //public static LeaveArea leaveArea;
-
-    //public static LevelManager levelManager;
 }

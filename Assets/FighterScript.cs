@@ -15,11 +15,6 @@ public class FighterScript : MonoBehaviour
     public bool knockedOut;
     public float knockedOutTime;
 
-    // Start is called before the first frame update
-    private void Awake()
-    {
-        
-    }
     void Start()
     {
         knockedOutTime = 1;
@@ -47,7 +42,10 @@ public class FighterScript : MonoBehaviour
         {
             if (agent.enabled)
             {
-                agent.destination = myTarget.transform.position; //обновляем пункт назначения, потому что цель движется
+                if(myTarget != null)
+                {
+                    agent.destination = myTarget.transform.position; //обновляем пункт назначения, потому что цель движется
+                }
             }
         }
         if (knockedOut)

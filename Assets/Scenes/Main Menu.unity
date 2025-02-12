@@ -994,6 +994,7 @@ MonoBehaviour:
   turnSpeed: 0
   turnSpeedMultiplier: 0
   myBody: {fileID: 0}
+  blueBody: {fileID: 0}
   agent: {fileID: 0}
   canPromote: 0
 --- !u!114 &261756103
@@ -1582,6 +1583,7 @@ MonoBehaviour:
   turnSpeed: 0
   turnSpeedMultiplier: 0
   myBody: {fileID: 0}
+  blueBody: {fileID: 0}
   agent: {fileID: 0}
   canPromote: 0
 --- !u!4 &416271399
@@ -1981,7 +1983,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -13.56, y: 4.24}
+  m_AnchoredPosition: {x: -12.53, y: 4.24}
   m_SizeDelta: {x: -4.9960003, y: 11.199997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &525212114
@@ -2789,6 +2791,7 @@ MonoBehaviour:
   timerBeforeShowingMenu: 0
   agitator: {fileID: 0}
   creditsText: {fileID: 496212511}
+  theCage: {fileID: 0}
 --- !u!224 &704301287
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4801,6 +4804,7 @@ MonoBehaviour:
   turnSpeed: 0
   turnSpeedMultiplier: 0
   myBody: {fileID: 0}
+  blueBody: {fileID: 0}
   agent: {fileID: 0}
   canPromote: 0
 --- !u!114 &1256874990
@@ -5359,6 +5363,7 @@ MonoBehaviour:
   turnSpeed: 0
   turnSpeedMultiplier: 0
   myBody: {fileID: 0}
+  blueBody: {fileID: 0}
   agent: {fileID: 0}
   canPromote: 0
 --- !u!114 &1459547171

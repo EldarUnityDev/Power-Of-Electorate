@@ -12,6 +12,7 @@ public class PlayerBehaviour : MonoBehaviour
     public float turnSpeedMultiplier;
 
     public GameObject myBody;
+    public GameObject blueBody;
     public NavMeshAgent agent;
     public bool canPromote;  //useable on electors disabled
 
@@ -22,17 +23,14 @@ public class PlayerBehaviour : MonoBehaviour
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody>();
-        References.pointsForPlayerCandidate = 0;
-        References.pointsForOppositeCandidate = 0;
         canPromote = true;
-        agent = GetComponent<NavMeshAgent>();
-        agent.enabled = false;
 
+        agent = GetComponent<NavMeshAgent>(); //для финала
+        agent.enabled = false;
     }
 
     void Update()
     {
-
         //MOVEMENT
         Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         if (!agent.enabled)
@@ -45,7 +43,7 @@ public class PlayerBehaviour : MonoBehaviour
 
         //use the nearest usable
         ElectorBehaviour nearestElectorSoFar = null;
-        float nearestDistance = 1.5f; //max turn distance
+        float nearestDistance = 1.5f; //max effect distance
 
         foreach (ElectorBehaviour thisElector in References.electors)
         {
@@ -60,17 +58,15 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        if (nearestElectorSoFar != null)
+        if (nearestElectorSoFar != null) //ЗДЕСЬ можно добавить включение UI кружочка
         {
-            //show USE prompt
-            //References.canvas.usePromptSignal = true;
             if (canPromote && Input.GetButtonDown("Use"))
             {
                 nearestElectorSoFar.JoinTalk(GetComponent<PlayerBehaviour>());
             }
         }
 
-        if (canPromote == false)
+        if (canPromote == false) //вращаем при диалоге
         {
             //Rotate
             Vector3 lateralOffset = transform.right * Time.deltaTime;
@@ -78,7 +74,7 @@ public class PlayerBehaviour : MonoBehaviour
             transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
         }
 
-        if (References.fightEnded)
+        if (References.fightEnded) //отбираем у игрока управление
         {
             agent.enabled = true;
         }
