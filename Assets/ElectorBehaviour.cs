@@ -92,11 +92,11 @@ public class ElectorBehaviour : MonoBehaviour
                             References.pointsForOppositeCandidate++;
                         }
                         else { References.pointsForPlayerCandidate++; }
+                        voted = true;
                     }
                     timeToVote = false;
                     myLeaveAreaObject = References.leaveAreaPoints[Random.Range(0, References.leaveAreaPoints.Count)].myBody;
                     agent.destination = myLeaveAreaObject.transform.position;
-                    voted = true;
                     References.electors.Remove(this); //when VOTED - Ignore Player
                     //if my body blue -> Make Bluer and same for RED
                 }

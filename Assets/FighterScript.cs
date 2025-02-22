@@ -20,21 +20,29 @@ public class FighterScript : MonoBehaviour
         knockedOutTime = 1;
         agent = GetComponent<NavMeshAgent>();
         ourRigidBody = GetComponent<Rigidbody>();
+        checkMyTeam();
+    }
+    public void checkMyTeam()
+    {
+        References.redFighters.Remove(this);
+        References.blueFighters.Remove(this);
+
         if (blueBody.activeInHierarchy != false)
         {
             References.blueFighters.Add(this);
+            Debug.Log("BLUE ADDED AYYY, NOW: " + References.blueFighters.Count);
+
         }
-        else
+        else if (redBody.activeInHierarchy != false)
         {
             References.redFighters.Add(this);
         }
     }
-
     // Update is called once per frame
     void Update()
     {
 
-        if (GetComponent<PlayerBehaviour>() == null && !targetAcquired)
+        if (GetComponent<PlayerBehaviour>() == null) // && !targetAcquired)
         {
             ChooseTarget();
         }
@@ -53,8 +61,12 @@ public class FighterScript : MonoBehaviour
             knockedOutTime -= Time.deltaTime;
             if (knockedOutTime < 0)
             {
-                agent.enabled = true;
                 ourRigidBody.isKinematic = false;
+                if(GetComponent<PlayerBehaviour>() == null)
+                {
+                    agent.enabled = true;
+                }
+                ourRigidBody.velocity = Vector3.zero;
                 knockedOut = false;
                 knockedOutTime = 1;
             }
@@ -63,12 +75,13 @@ public class FighterScript : MonoBehaviour
         //В конце игры после боя гуляем по точкам
         if (agent.enabled && References.fightEnded && agent.remainingDistance < 2)
         {
+            myTarget = null;
             GoToRandomNavPoint();
         }
     }
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.GetComponent<FighterScript>() != null && !References.fightEnded)
+        if (collision.gameObject.GetComponent<FighterScript>() != null && !References.fightEnded && References.electionsEnded)
         {
             bool touchedEnemy = false;
             if (blueBody.activeInHierarchy && collision.gameObject.GetComponent<FighterScript>().redBody.activeInHierarchy)
@@ -85,7 +98,7 @@ public class FighterScript : MonoBehaviour
                 agent.enabled = false;
                 ourRigidBody.isKinematic = false;
                 ourRigidBody.constraints = RigidbodyConstraints.None;
-                ourRigidBody.AddForce((-transform.forward * 800) + transform.up * 10);
+                ourRigidBody.AddForce((-transform.forward * 800) + transform.up * 50);
                 knockedOut = true;
                 targetAcquired = false;
 
@@ -121,7 +134,6 @@ public class FighterScript : MonoBehaviour
             blueBody.SetActive(false);            //тело моё не синее
             redBody.SetActive(true);              //моё тело красное
             References.redFighters.Add(this);    //я теперь красный
-
         }
         else
         {

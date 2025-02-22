@@ -13,10 +13,4 @@ public class SpawnPoint : MonoBehaviour
     {
         spawnPoint.GetComponent<MeshRenderer>().enabled = false;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

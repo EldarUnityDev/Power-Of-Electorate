@@ -14,7 +14,7 @@ public class PlayerBehaviour : MonoBehaviour
     public GameObject myBody;
     public GameObject blueBody;
     public NavMeshAgent agent;
-    public bool canPromote;  //useable on electors disabled
+    public bool canPromote;  //также используется как inConversation
 
     private void Awake()
     {
@@ -31,6 +31,8 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Update()
     {
+        Debug.Log("First blues: " + References.blueFighters.Count);
+        Debug.Log("First reds: " + References.redFighters.Count);
         //MOVEMENT
         Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         if (!agent.enabled)
@@ -41,7 +43,7 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        //use the nearest usable
+        //PROMOTION TARGET
         ElectorBehaviour nearestElectorSoFar = null;
         float nearestDistance = 1.5f; //max effect distance
 

@@ -22,6 +22,7 @@ public class LevelManager : MonoBehaviour
 
     public GameObject endScreenText;
     public GameObject endScreenButton;
+    public GameObject toMapButton;
 
     public GameObject blueWinsText;
     public GameObject redWinsText;
@@ -34,7 +35,7 @@ public class LevelManager : MonoBehaviour
 
     public GameObject creditsText;
     public GameObject theCage;
-    //public bool endedLi;
+
     private void Awake()
     {
         References.levelManager = this;
@@ -62,7 +63,7 @@ public class LevelManager : MonoBehaviour
     }
     public void StartNewGame()
     {
-        SceneManager.LoadScene("Main Level");
+        SceneManager.LoadScene("Level 1");
         Time.timeScale = 1;
         References.gamesCount++;
     }
@@ -83,11 +84,15 @@ public class LevelManager : MonoBehaviour
 
         Time.timeScale = 1;
         References.gamesCount++;
-
     }
     public void MainMenu()
     {
         SceneManager.LoadScene("Main Menu");
+        Time.timeScale = 1;
+    }
+    public void Map()
+    {
+        SceneManager.LoadScene("Map");
         Time.timeScale = 1;
     }
     private void Update()
@@ -113,11 +118,11 @@ public class LevelManager : MonoBehaviour
             }
         }
 
-        //СЮДА
         //Переход на Этап 2 - голосование завершилось
         if (References.electors.Count == 0 && !fightersSpawned)
         {
             Debug.Log("Election Results: " + References.pointsForPlayerCandidate + ":" + References.pointsForOppositeCandidate);
+            References.electionsEnded = true;
             if (!endScreenText.activeInHierarchy)
             {
                 timerBeforeShowingMenu -= Time.deltaTime;
@@ -128,12 +133,12 @@ public class LevelManager : MonoBehaviour
                 }
             }
 
-            if (timeBeforeShowdown <= 0)
+            /*if (timeBeforeShowdown <= 0)
             {
                 //+++Player Body Change
                 SpawnFighters();
                 fightersSpawned = true;
-            }
+            }*/
         }
 
         //Переход на Финальный экран
@@ -149,34 +154,41 @@ public class LevelManager : MonoBehaviour
                 {
                     References.fightEnded = true;
                     redWinsText.SetActive(true);
-                    //endedLi = true;
                 }
 
                 if (References.redFighters.Count == 0)
                 {
                     References.fightEnded = true;
                     blueWinsText.SetActive(true);
-                    //endedLi = true;
                 }
+                toMapButton.SetActive(true);
             }
         }
     }
-    public void StartTheFight()
+    public void StartTheFight() //Запускается кнопкой NEXT
     {
+        //Agitator body switch
         agitator.GetComponent<FighterScript>().redBody.SetActive(true);
-        agitator.GetComponent<FighterScript>().targetAcquired = false;
+        agitator.GetComponent<FighterScript>().checkMyTeam();
         agitator.GetComponent<AgitatorBehaviour>().myBody.SetActive(false);
+        agitator.GetComponent<FighterScript>().targetAcquired = false;
+        agitator.GetComponent<Rigidbody>().isKinematic = false;
 
+
+        //Player body switch
         References.thePlayer.GetComponent<PlayerBehaviour>().blueBody.SetActive(true);
+        References.thePlayer.GetComponent<FighterScript>().checkMyTeam();
         References.thePlayer.GetComponent<PlayerBehaviour>().myBody.SetActive(false);
-        References.blueFighters.Add(References.thePlayer.GetComponent<FighterScript>());
+        //References.blueFighters.Add(References.thePlayer.GetComponent<FighterScript>());
 
-
+        //Disabling the active text
         endScreenText.SetActive(false);
         endScreenButton.SetActive(false);
-        timeBeforeShowdown = 0;
+        //timeBeforeShowdown = 0; //triggers SpawnFighters
         theCage.SetActive(true);
-        timerBeforeShowingMenu = 55; //необходимый шаг, чтобы не включилось снова
+        //timerBeforeShowingMenu = 55; //необходимый шаг, чтобы не включилось снова
+        SpawnFighters();
+        fightersSpawned = true;
     }
     public void SpawnFighters()
     {
