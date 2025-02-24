@@ -35,6 +35,7 @@ public class LevelManager : MonoBehaviour
 
     public GameObject creditsText;
     public GameObject theCage;
+    public string levelNameForRestartButton;
 
     private void Awake()
     {
@@ -49,6 +50,11 @@ public class LevelManager : MonoBehaviour
 
         References.pointsForPlayerCandidate = 0;
         References.pointsForOppositeCandidate = 0;
+
+        Debug.Log("current scene name: " + SceneManager.GetActiveScene().name);
+        PlayerPrefs.SetString("currentLevel", SceneManager.GetActiveScene().name);
+        PlayerPrefs.Save();
+        levelNameForRestartButton = SceneManager.GetActiveScene().name;
     }
     public void CreditsOnOff()
     {
@@ -79,7 +85,7 @@ public class LevelManager : MonoBehaviour
     }
     public void Restart()
     {
-        SceneManager.LoadScene("Main Level");
+        SceneManager.LoadScene(levelNameForRestartButton);
         graceTime = 1;
 
         Time.timeScale = 1;
@@ -161,6 +167,7 @@ public class LevelManager : MonoBehaviour
                     References.fightEnded = true;
                     blueWinsText.SetActive(true);
                 }
+
                 toMapButton.SetActive(true);
             }
         }

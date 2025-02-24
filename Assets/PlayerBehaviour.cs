@@ -6,6 +6,8 @@ using UnityEngine.AI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
+    public float upForce;
+    public float forwardForce;
     Rigidbody myRigidbody;
     public float speed;
     public float turnSpeed;
@@ -15,6 +17,7 @@ public class PlayerBehaviour : MonoBehaviour
     public GameObject blueBody;
     public NavMeshAgent agent;
     public bool canPromote;  //также используется как inConversation
+
 
     private void Awake()
     {
@@ -79,6 +82,20 @@ public class PlayerBehaviour : MonoBehaviour
         if (References.fightEnded) //отбираем у игрока управление
         {
             agent.enabled = true;
+        }
+
+        //Shooting
+        Ray rayFromCameraToCursor = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Plane playerPlane = new Plane(Vector3.up, transform.position);
+        playerPlane.Raycast(rayFromCameraToCursor, out float distanceFromCamera);
+        Vector3 cursorPosition = rayFromCameraToCursor.GetPoint(distanceFromCamera);
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            myRigidbody.isKinematic = false;
+            myRigidbody.constraints = RigidbodyConstraints.None;
+            myRigidbody.AddForce((cursorPosition * forwardForce) + transform.up * upForce);
+            transform.LookAt(cursorPosition);
         }
     }
 }

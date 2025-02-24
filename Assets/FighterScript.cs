@@ -30,7 +30,6 @@ public class FighterScript : MonoBehaviour
         if (blueBody.activeInHierarchy != false)
         {
             References.blueFighters.Add(this);
-            Debug.Log("BLUE ADDED AYYY, NOW: " + References.blueFighters.Count);
 
         }
         else if (redBody.activeInHierarchy != false)
@@ -38,7 +37,7 @@ public class FighterScript : MonoBehaviour
             References.redFighters.Add(this);
         }
     }
-    // Update is called once per frame
+
     void Update()
     {
 

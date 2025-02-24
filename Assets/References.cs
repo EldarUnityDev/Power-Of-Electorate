@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class References
 {
@@ -25,4 +26,5 @@ public static class References
     //Map Nav
     public static GameObject currentPad;
     public static GameObject currentlyHighlightedPad;
+    public static List<GameObject> pads = new List<GameObject>();
 }
