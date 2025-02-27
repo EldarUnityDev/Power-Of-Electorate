@@ -67,7 +67,7 @@ public class PlayerBehaviour : MonoBehaviour
         {
             if (canPromote && Input.GetButtonDown("Use"))
             {
-                nearestElectorSoFar.JoinTalk(GetComponent<PlayerBehaviour>());
+                nearestElectorSoFar.JoinTalk(gameObject);
             }
         }
 

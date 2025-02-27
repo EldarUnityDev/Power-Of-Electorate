@@ -88,7 +88,7 @@ public class AgitatorBehaviour : MonoBehaviour
             {
                 talking = true; //запускаем таймер на разговор
                 agent.enabled = false;
-                myTarget.JoinTalk(null);
+                myTarget.JoinTalk(gameObject);
                 
             }
             if(talking)
@@ -96,7 +96,7 @@ public class AgitatorBehaviour : MonoBehaviour
                 talkTime -= Time.deltaTime;
                 if (talkTime < 0)
                 {
-                    myTarget.TurnMe(null);
+                    myTarget.TurnMe(gameObject);
                     targetAcquired = false;
                     References.targetElectors.Remove(myTarget); //больше его не ищем
                     myTarget.LeaveTalk();

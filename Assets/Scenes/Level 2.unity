@@ -1921,6 +1921,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52a0e2bc2ed72e947affb8e98ba1e079, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  upForce: 0
+  forwardForce: 0
   speed: 5
   turnSpeed: 4
   turnSpeedMultiplier: 3
@@ -4550,7 +4552,7 @@ MonoBehaviour:
   graceTime: 1
   endScreenText: {fileID: 510201260}
   endScreenButton: {fileID: 1264793409}
-  toMapButton: {fileID: 0}
+  toMapButton: {fileID: 914519494}
   blueWinsText: {fileID: 913706505}
   redWinsText: {fileID: 1127329523}
   blueScore: {fileID: 1842939388}
@@ -4559,6 +4561,7 @@ MonoBehaviour:
   agitator: {fileID: 140455124}
   creditsText: {fileID: 0}
   theCage: {fileID: 1232812847}
+  levelNameForRestartButton: 
 --- !u!224 &1002543474
 RectTransform:
   m_ObjectHideFlags: 0

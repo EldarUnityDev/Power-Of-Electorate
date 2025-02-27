@@ -23,16 +23,26 @@ public class ElectorBehaviour : MonoBehaviour
     public GameObject playerCandidateBody;
     private GameObject myLeaveAreaObject;
     public bool voted;
+
+    public GameObject auraOutline;
+    public GameObject playerAura;
+    public GameObject enemyAura;
+
+    public float talkDistance;
+    public float talkAbandonTimer;
+
+    Vector3 myAuraDef;
     private void Awake()
     {
         References.electors.Add(this);
         References.targetElectors.Add(this);
-
     }
     void Start()
     {
+        myAuraDef = playerAura.transform.localScale;
         agent = GetComponent<NavMeshAgent>();
         talkTime = 2;
+        talkAbandonTimer = 1;
     }
 
     void Update()
@@ -47,21 +57,38 @@ public class ElectorBehaviour : MonoBehaviour
         }
 
         //Взаимодействие с игроком
-        if (!agent.enabled) //значит кто-то остановил, если игрок, то измеряем дистанцию
-        {
-            if (inTalkWithPlayer && Vector3.Distance(transform.position, References.thePlayer.transform.position) > 2)
-            {
-                LeaveTalk();
-            }
-        }
+        //if (!agent.enabled) //значит кто-то остановил, если игрок, то измеряем дистанцию
+        
+    
         if (inTalkWithPlayer)
         {
-            talkTime -= Time.deltaTime;
+            if(talkAbandonTimer == 1) //если мы в беседе с игроком + таймер сброса не изменён, то игрок рядом
+            {
+                talkTime -= Time.deltaTime;
+                GetComponent<SliderForConversion>().ShowFraction(talkTime/2);
+            }
             if (talkTime < 0)
             {
-                TurnMe(References.thePlayer.GetComponent<PlayerBehaviour>());
+                TurnMe(References.thePlayer.gameObject);
                 LeaveTalk();
                 inTalkWithPlayer = false; // закончили разговор
+            }
+
+            //Check distance
+            if (Vector3.Distance(transform.position, References.thePlayer.transform.position) > talkDistance)
+            {
+                talkAbandonTimer -= Time.deltaTime;
+                Debug.Log("ABANON IN: " + talkAbandonTimer);
+                playerAura.transform.localScale = new Vector3(playerAura.transform.localScale.x - Time.deltaTime * 2, playerAura.transform.localScale.y, playerAura.transform.localScale.z - Time.deltaTime * 2);
+                if (talkAbandonTimer < 0)
+                {
+                    LeaveTalk();
+                }
+            }
+            else
+            {
+                talkAbandonTimer = 1;
+                playerAura.transform.localScale = myAuraDef;
             }
         }
 
@@ -71,7 +98,7 @@ public class ElectorBehaviour : MonoBehaviour
         {
             timeBeforeVote -= Time.deltaTime;
         }
-        else if(!voted && timeBeforeVote < 0)
+        else if (!voted && timeBeforeVote < 0)
         {
             timeToVote = true;
             References.targetElectors.Remove(this); //don't turn me anymore
@@ -82,6 +109,7 @@ public class ElectorBehaviour : MonoBehaviour
         {
             if (agent.enabled) //если не в разговоре
             {
+                References.electors.Remove(this);
                 agent.destination = References.votingPost.transform.position; //идём к столу
                 if (Vector3.Distance(transform.position, References.votingPost.transform.position) < 1) //вручную считаем расстояние
                 {
@@ -106,7 +134,7 @@ public class ElectorBehaviour : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        if(agent.enabled == false)
+        if (agent.enabled == false)
         {
             //Rotate
             Vector3 lateralOffset = transform.right * Time.deltaTime;
@@ -117,21 +145,21 @@ public class ElectorBehaviour : MonoBehaviour
     void GoToRandomNavPoint()
     {
         int randomNavPointIndex = Random.Range(0, References.spawnPoints.Count);
-        if(References.spawnPoints[randomNavPointIndex] != null) //чтобы не было ошибки на рестарте
+        if (References.spawnPoints[randomNavPointIndex] != null) //чтобы не было ошибки на рестарте
         {
             agent.destination = References.spawnPoints[randomNavPointIndex].transform.position;
         }
     }
-    public void TurnMe(PlayerBehaviour playerContacted)
+    public void TurnMe(GameObject turner)
     {
         myBody.SetActive(false);
-        if (playerContacted != null)
+        if (turner.GetComponent<PlayerBehaviour>() != null)
         {
             playerCandidateBody.SetActive(true);
             if (enemyCandidateBody.activeInHierarchy)
             {
                 enemyCandidateBody.SetActive(false);
-                if(References.targetElectors.Count != 0)//если игрок обращает не последнего
+                if (References.targetElectors.Count != 0)//если игрок обращает не последнего
                 {
                     References.targetElectors.Add(this);
                 }
@@ -143,25 +171,37 @@ public class ElectorBehaviour : MonoBehaviour
             enemyCandidateBody.SetActive(true);
         }
     }
-    public void JoinTalk(PlayerBehaviour playerContacted)
+    public void JoinTalk(GameObject interlocutor)
     {
         agent.enabled = false;
-        if (playerContacted != null)
+        auraOutline.SetActive(true);
+
+        if (interlocutor.GetComponent<PlayerBehaviour>() != null)
         {
+            //activate Player CIRCLE
+            playerAura.SetActive(true);
             References.thePlayer.canPromote = false;
             inTalkWithPlayer = true;
+        }
+        else
+        { //activate Enemy Circle
+            enemyAura.SetActive(true);
+
         }
     }
 
     public void LeaveTalk()
     {
+        auraOutline.SetActive(false);
         agent.enabled = true;
         if (inTalkWithPlayer)
         {
+            playerAura.SetActive(false);
             inTalkWithPlayer = false;
             References.thePlayer.canPromote = true;
             References.thePlayer.turnSpeedMultiplier = 3;
         }
+        else { enemyAura.SetActive(false); }
         talkTime = 2;  //сбрасываем таймер для следующего разговора
         turnSpeedMultiplier = 2;
         if (voted)
