@@ -17,7 +17,8 @@ public class PlayerBehaviour : MonoBehaviour
     public GameObject blueBody;
     public NavMeshAgent agent;
     public bool canPromote;  //также используется как inConversation
-
+    public bool leaping;
+    public float leapingTimer;
 
     private void Awake()
     {
@@ -34,15 +35,19 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("First blues: " + References.blueFighters.Count);
-        Debug.Log("First reds: " + References.redFighters.Count);
+        //Debug.Log("First blues: " + References.blueFighters.Count);
+        //Debug.Log("First reds: " + References.redFighters.Count);
+
         //MOVEMENT
-        Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        if (!agent.enabled)
+        if (!leaping)
         {
-            if (inputVector.magnitude > 0)
+            Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+            if (!agent.enabled)
             {
-                myRigidbody.velocity = inputVector * speed;
+                if (inputVector.magnitude > 0)
+                {
+                    myRigidbody.velocity = inputVector * speed;
+                }
             }
         }
 
@@ -86,16 +91,35 @@ public class PlayerBehaviour : MonoBehaviour
 
         //Shooting
         Ray rayFromCameraToCursor = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Plane playerPlane = new Plane(Vector3.up, transform.position);
+        Plane playerPlane = new Plane(Vector3.forward, 0);
         playerPlane.Raycast(rayFromCameraToCursor, out float distanceFromCamera);
         Vector3 cursorPosition = rayFromCameraToCursor.GetPoint(distanceFromCamera);
 
-        if (Input.GetButtonDown("Fire1"))
+        if (!leaping && Input.GetButtonDown("Fire1")) //!leaping && 
         {
-            myRigidbody.isKinematic = false;
+            leaping = true;
+            //myRigidbody.isKinematic = false;
             myRigidbody.constraints = RigidbodyConstraints.None;
             myRigidbody.AddForce((cursorPosition * forwardForce) + transform.up * upForce);
             transform.LookAt(cursorPosition);
         }
+        if (leaping)
+        {
+            leapingTimer += Time.deltaTime;
+            if(leapingTimer >= 1f)
+            {
+                leaping = false;
+                leapingTimer = 0;
+                myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
+                //myRigidbody.isKinematic = true;
+                //myRigidbody.constraints = RigidbodyConstraints.None;
+
+            }
+
+        }
+    }
+    private IEnumerator PlayerLeap()
+    {
+        yield return null;
     }
 }

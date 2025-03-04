@@ -11,4 +11,9 @@ public class SliderForConversion : MonoBehaviour
     {
         timerSlider.value = fraction;
     }
+    void Update()
+    {
+        Quaternion lookRotation = Camera.main.transform.rotation;
+        timerSlider.transform.rotation = lookRotation;
+    }
 }

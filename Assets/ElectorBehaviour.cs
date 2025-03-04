@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
 
 public class ElectorBehaviour : MonoBehaviour
@@ -14,7 +16,6 @@ public class ElectorBehaviour : MonoBehaviour
     public float turnSpeed;
     public float turnSpeedMultiplier;
 
-
     public bool timeToVote;
     public float timeBeforeVote;
 
@@ -25,6 +26,7 @@ public class ElectorBehaviour : MonoBehaviour
     public bool voted;
 
     public GameObject auraOutline;
+    public Slider auraOutlineSlider;
     public GameObject playerAura;
     public GameObject enemyAura;
 
@@ -32,6 +34,8 @@ public class ElectorBehaviour : MonoBehaviour
     public float talkAbandonTimer;
 
     Vector3 myAuraDef;
+    public GameObject sliderGameObject;
+    public GameObject questionMark;
     private void Awake()
     {
         References.electors.Add(this);
@@ -58,15 +62,29 @@ public class ElectorBehaviour : MonoBehaviour
 
         //Взаимодействие с игроком
         //if (!agent.enabled) //значит кто-то остановил, если игрок, то измеряем дистанцию
-        
-    
+        if (questionMark.activeInHierarchy)
+        {
+            //Quaternion lookRotation = Camera.main.transform.rotation;
+            questionMark.transform.rotation = Quaternion.Euler(questionMark.transform.localRotation.x, Camera.main.transform.rotation.y, questionMark.transform.localRotation.z); ;
+        }
+
         if (inTalkWithPlayer)
         {
-            if(talkAbandonTimer == 1) //если мы в беседе с игроком + таймер сброса не изменён, то игрок рядом
+            //Rotate throughout the whole event
+            Vector3 lateralOffset = transform.right * Time.deltaTime;
+            transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
+
+            //if (talkAbandonTimer == 1) //если мы в беседе с игроком + таймер сброса не изменён, то игрок рядом
+            if (Vector3.Distance(transform.position, References.thePlayer.transform.position) < talkDistance)
             {
+                References.thePlayer.GetComponent<PlayerBehaviour>().canPromote = false;
+
                 talkTime -= Time.deltaTime;
-                GetComponent<SliderForConversion>().ShowFraction(talkTime/2);
+                GetComponent<SliderForConversion>().ShowFraction(1 - talkTime / 2);
+                //If player close enough, continue spinning
+                turnSpeedMultiplier += Time.deltaTime; //ускоряем
             }
+
             if (talkTime < 0)
             {
                 TurnMe(References.thePlayer.gameObject);
@@ -77,16 +95,38 @@ public class ElectorBehaviour : MonoBehaviour
             //Check distance
             if (Vector3.Distance(transform.position, References.thePlayer.transform.position) > talkDistance)
             {
-                talkAbandonTimer -= Time.deltaTime;
-                Debug.Log("ABANON IN: " + talkAbandonTimer);
+                References.thePlayer.GetComponent<PlayerBehaviour>().canPromote = true;
+                StartCoroutine(QuestionMarkAppear()); // Animation
+                questionMark.SetActive(true);
+                //// Rewind
+                if (talkTime < 2)
+                {
+                    talkTime += 0.5f * Time.deltaTime;
+                }
+                GetComponent<SliderForConversion>().ShowFraction(1 - talkTime / 2);
+
+                if(turnSpeedMultiplier > 2)
+                {
+                    turnSpeedMultiplier -= Time.deltaTime; //
+                }
+                ///
+
+                /*talkAbandonTimer -= Time.deltaTime;
+                questionMark.SetActive(true);
+                //Debug.Log("ABANON IN: " + talkAbandonTimer);
+                Debug.Log("questn??? " + questionMarkReady);
                 playerAura.transform.localScale = new Vector3(playerAura.transform.localScale.x - Time.deltaTime * 2, playerAura.transform.localScale.y, playerAura.transform.localScale.z - Time.deltaTime * 2);
                 if (talkAbandonTimer < 0)
                 {
                     LeaveTalk();
-                }
+                }*/
             }
             else
             {
+                questionMark.SetActive(false);
+                StopAllCoroutines();
+                GetComponent<SliderForConversion>().timerSlider.GetComponent<CanvasGroup>().alpha = 1;
+                auraOutlineSlider.GetComponent<CanvasGroup>().alpha = 1;
                 talkAbandonTimer = 1;
                 playerAura.transform.localScale = myAuraDef;
             }
@@ -134,13 +174,7 @@ public class ElectorBehaviour : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        if (agent.enabled == false)
-        {
-            //Rotate
-            Vector3 lateralOffset = transform.right * Time.deltaTime;
-            turnSpeedMultiplier += Time.deltaTime; //ускоряем
-            transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
-        }
+
     }
     void GoToRandomNavPoint()
     {
@@ -179,20 +213,23 @@ public class ElectorBehaviour : MonoBehaviour
         if (interlocutor.GetComponent<PlayerBehaviour>() != null)
         {
             //activate Player CIRCLE
-            playerAura.SetActive(true);
+            //playerAura.SetActive(true);
             References.thePlayer.canPromote = false;
             inTalkWithPlayer = true;
+            sliderGameObject.SetActive(true);
         }
         else
         { //activate Enemy Circle
             enemyAura.SetActive(true);
-
         }
     }
 
     public void LeaveTalk()
     {
+
         auraOutline.SetActive(false);
+        sliderGameObject.SetActive(false);
+        questionMark.SetActive(false);
         agent.enabled = true;
         if (inTalkWithPlayer)
         {
@@ -210,6 +247,46 @@ public class ElectorBehaviour : MonoBehaviour
             agent.destination = myLeaveAreaObject.transform.position;
         }
     }
+    private IEnumerator QuestionMarkAppear()
+    {
+        float elapsedTime = 0;
+        float talkAbandonTimerCo = 0;
+
+        // "?" appear Animation
+        //Set scale 0 - Start 
+        questionMark.transform.localScale = Vector3.zero;
+
+        //Make scale 1.5 - Overshoot
+        while (elapsedTime < 0.5f)
+        {
+            questionMark.transform.localScale = Vector3.Lerp(Vector3.zero, new Vector3(1.5f, 1.5f, 1.5f), elapsedTime / 0.5f);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        //Make scale 1 - Correct
+        while (elapsedTime > 0.5f && elapsedTime < 0.9f)
+        {
+            questionMark.transform.localScale = Vector3.Lerp(questionMark.transform.localScale, Vector3.one, elapsedTime / 0.9f);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        //Vector3 A = new Vector3(playerAura.transform.localScale.x, playerAura.transform.localScale.y, playerAura.transform.localScale.z);
+        //Vector3 B = new Vector3(0.5f, playerAura.transform.localScale.y, 0.5f);
+        //Debug.Log("ABANON IN: " + talkAbandonTimer);
+        while (talkAbandonTimerCo < 2)
+        {
+            // playerAura.transform.localScale = Vector3.Lerp(A, B, talkAbandonTimerCo/2);
+            GetComponent<SliderForConversion>().timerSlider.GetComponent<CanvasGroup>().alpha = 1 - talkAbandonTimerCo / 2;
+            auraOutlineSlider.GetComponent<CanvasGroup>().alpha = 1 - talkAbandonTimerCo / 2;
+
+            talkAbandonTimerCo += Time.deltaTime;
+            yield return null;
+        }
+        LeaveTalk();
+    }
+
     private void OnDestroy()
     {
         References.electors.Remove(this);
