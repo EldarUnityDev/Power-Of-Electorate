@@ -10,6 +10,19 @@ public class LevelManager : MonoBehaviour
     public GameObject menuGameObject;
     public GameObject tutorialText1; //*
     public GameObject tutorialText2; //Recomended
+    //Беседа и после
+    public TextMeshProUGUI chatWindow;
+    public TextMeshProUGUI outroTextWindow;
+
+    public List<string> chatLines;
+    public List<string> endChatLines;
+
+    public int endChatLineNumber;
+    public int chatLineNumber;
+    public bool chatEnded;
+    public GameObject nextButton;
+    public GameObject goButton;
+    bool endScreenShown;
     //Финальный бой
     public float timeBeforeShowdown;
     public GameObject RedTeamFighter;
@@ -19,9 +32,10 @@ public class LevelManager : MonoBehaviour
     public List<GameObject> redFightersSpawns;
 
     public float graceTime;
-
     public GameObject endScreenText;
-    public GameObject endScreenButton;
+
+    public GameObject moveToCutButton;
+    public GameObject outroLineButton;
     public GameObject toMapButton;
 
     public GameObject blueWinsText;
@@ -37,6 +51,11 @@ public class LevelManager : MonoBehaviour
     public GameObject theCage;
     public string levelNameForRestartButton;
 
+    public GameObject elector;
+    public GameObject cutsceneElectorSpawnPoint;
+    public bool cutsceneStarted;
+    public float timeOfCutscene;
+
     private void Awake()
     {
         References.levelManager = this;
@@ -51,10 +70,43 @@ public class LevelManager : MonoBehaviour
         References.pointsForPlayerCandidate = 0;
         References.pointsForOppositeCandidate = 0;
 
-        Debug.Log("current scene name: " + SceneManager.GetActiveScene().name);
         PlayerPrefs.SetString("currentLevel", SceneManager.GetActiveScene().name);
         PlayerPrefs.Save();
         levelNameForRestartButton = SceneManager.GetActiveScene().name;
+
+        chatEnded = false; //no update
+
+    }
+    public void ShowNextLine()
+    {
+        chatLineNumber++;
+        if (chatLineNumber < chatLines.Count)
+        {
+            chatWindow.text = chatLines[chatLineNumber];
+        }
+        else
+        {
+            nextButton.SetActive(false);
+            goButton.SetActive(true);
+        }
+    }
+    public void ShowNextFarewellLine()                 //THIS
+    {
+        if (endScreenText.activeInHierarchy)
+        {
+            endScreenText.SetActive(false);
+        }
+  
+        if (endChatLineNumber < endChatLines.Count)
+        {
+            chatWindow.text = endChatLines[endChatLineNumber];
+        }
+        else
+        {
+            outroLineButton.SetActive(false);
+            toMapButton.SetActive(true);
+        }
+        endChatLineNumber++;
     }
     public void CreditsOnOff()
     {
@@ -103,8 +155,10 @@ public class LevelManager : MonoBehaviour
     }
     private void Update()
     {
+        Debug.Log("ElectionersResults: " + References.electors.Count);
+
         //SCORE UPDATE
-        if(blueScore != null)
+        if (blueScore != null)
         {
             blueScore.text = References.pointsForPlayerCandidate.ToString();
             redScore.text = References.pointsForOppositeCandidate.ToString();
@@ -125,20 +179,20 @@ public class LevelManager : MonoBehaviour
         }
 
         //Переход на Этап 2 - голосование завершилось
-        if (References.electors.Count == 0 && !fightersSpawned)
+        if (References.electors.Count == 0)// && !fightersSpawned)
         {
             Debug.Log("Election Results: " + References.pointsForPlayerCandidate + ":" + References.pointsForOppositeCandidate);
-            References.electionsEnded = true;
-            if (!endScreenText.activeInHierarchy)
+            References.electionsEnded = true; //для файтеров
+            if (!endScreenText.activeInHierarchy && !endScreenShown)
             {
+                endScreenShown = true;
                 timerBeforeShowingMenu -= Time.deltaTime;
                 if(timerBeforeShowingMenu < 0)
                 {
                     endScreenText.SetActive(true);
-                    endScreenButton.SetActive(true);
+                    moveToCutButton.SetActive(true);
                 }
             }
-
             /*if (timeBeforeShowdown <= 0)
             {
                 //+++Player Body Change
@@ -171,17 +225,44 @@ public class LevelManager : MonoBehaviour
                 toMapButton.SetActive(true);
             }
         }
+        if (cutsceneStarted)
+        {
+            timeOfCutscene -= Time.deltaTime;
+            if (timeOfCutscene < 0)
+            {
+                endScreenText.SetActive(true);
+                outroLineButton.SetActive(true);
+            }
+        }
+    }
+    public void CutsceneStart()
+    {
+        //player loses control
+        References.thePlayer.GetComponent<PlayerBehaviour>().enabled = false;
+        //spawn electors
+        GameObject newElector = Instantiate(elector, cutsceneElectorSpawnPoint.transform.position, cutsceneElectorSpawnPoint.transform.rotation);
+        newElector.GetComponent<ElectorBehaviour>().neutralMood = false; //чтоб не бегал
+        //camera pans
+        References.cameraTools.moveToCutscene();
+        //Agitator ON ?? 
+        chatEnded = true;
+        //Timer Start -> presentation done
+        cutsceneStarted = true;
+        //Show text by kiosk guy "woa" "+time to move on to another location. Make sure to come buy to get paid before you hit the road"
+        //(!) Maybe make another camera pointing at him
+        //Go to map button ON
     }
     public void StartTheFight() //Запускается кнопкой NEXT
     {
         //Agitator body switch
-        agitator.GetComponent<FighterScript>().redBody.SetActive(true);
-        agitator.GetComponent<FighterScript>().checkMyTeam();
-        agitator.GetComponent<AgitatorBehaviour>().myBody.SetActive(false);
-        agitator.GetComponent<FighterScript>().targetAcquired = false;
-        agitator.GetComponent<Rigidbody>().isKinematic = false;
-
-
+        if(agitator != null)
+        {
+            agitator.GetComponent<FighterScript>().redBody.SetActive(true);
+            agitator.GetComponent<FighterScript>().checkMyTeam();
+            agitator.GetComponent<AgitatorBehaviour>().myBody.SetActive(false);
+            agitator.GetComponent<FighterScript>().targetAcquired = false;
+            agitator.GetComponent<Rigidbody>().isKinematic = false;
+        }
         //Player body switch
         References.thePlayer.GetComponent<PlayerBehaviour>().blueBody.SetActive(true);
         References.thePlayer.GetComponent<FighterScript>().checkMyTeam();
@@ -190,7 +271,7 @@ public class LevelManager : MonoBehaviour
 
         //Disabling the active text
         endScreenText.SetActive(false);
-        endScreenButton.SetActive(false);
+        outroLineButton.SetActive(false);
         //timeBeforeShowdown = 0; //triggers SpawnFighters
         theCage.SetActive(true);
         //timerBeforeShowingMenu = 55; //необходимый шаг, чтобы не включилось снова

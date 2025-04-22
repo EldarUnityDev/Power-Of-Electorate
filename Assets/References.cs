@@ -27,4 +27,7 @@ public static class References
     public static GameObject currentPad;
     public static GameObject currentlyHighlightedPad;
     public static List<GameObject> pads = new List<GameObject>();
+    //Camera
+    public static CameraTools cameraTools;
+
 }

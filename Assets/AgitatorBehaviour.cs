@@ -61,7 +61,7 @@ public class AgitatorBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!readyToWork) //если на перерыве
+        if (!readyToWork && References.levelManager.chatEnded) //если на перерыве
         {
             breakTimer -= Time.deltaTime;
             if(breakTimer < 0)

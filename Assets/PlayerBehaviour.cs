@@ -17,8 +17,8 @@ public class PlayerBehaviour : MonoBehaviour
     public GameObject blueBody;
     public NavMeshAgent agent;
     public bool canPromote;  //также используется как inConversation
-    public bool leaping;
-    public float leapingTimer;
+    //public bool leaping;
+    //public float leapingTimer;
 
     private void Awake()
     {
@@ -39,15 +39,12 @@ public class PlayerBehaviour : MonoBehaviour
         //Debug.Log("First reds: " + References.redFighters.Count);
 
         //MOVEMENT
-        if (!leaping)
+        Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        if (!agent.enabled)
         {
-            Vector3 inputVector = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            if (!agent.enabled)
+            if (inputVector.magnitude > 0)
             {
-                if (inputVector.magnitude > 0)
-                {
-                    myRigidbody.velocity = inputVector * speed;
-                }
+                myRigidbody.velocity = inputVector * speed;
             }
         }
 
@@ -95,7 +92,7 @@ public class PlayerBehaviour : MonoBehaviour
         playerPlane.Raycast(rayFromCameraToCursor, out float distanceFromCamera);
         Vector3 cursorPosition = rayFromCameraToCursor.GetPoint(distanceFromCamera);
 
-        if (!leaping && Input.GetButtonDown("Fire1")) //!leaping && 
+        /*if (!leaping && Input.GetButtonDown("Fire1")) //!leaping && 
         {
             leaping = true;
             //myRigidbody.isKinematic = false;
@@ -103,20 +100,30 @@ public class PlayerBehaviour : MonoBehaviour
             myRigidbody.AddForce((cursorPosition * forwardForce) + transform.up * upForce);
             transform.LookAt(cursorPosition);
         }
-        if (leaping)
+         if (leaping)
+         {
+             leapingTimer += Time.deltaTime;
+
+             if(leapingTimer >= 1f)
+             {
+                 leaping = false;
+                 leapingTimer = 0;
+                 myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
+                 //myRigidbody.isKinematic = true;
+                 //myRigidbody.constraints = RigidbodyConstraints.None;
+             }
+
+         }*/
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+
+        /*if (collision.gameObject.name == "Ground")
         {
-            leapingTimer += Time.deltaTime;
-            if(leapingTimer >= 1f)
-            {
-                leaping = false;
-                leapingTimer = 0;
-                myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
-                //myRigidbody.isKinematic = true;
-                //myRigidbody.constraints = RigidbodyConstraints.None;
-
-            }
-
-        }
+            leaping = false;
+            leapingTimer = 0;
+            myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
+        }*/
     }
     private IEnumerator PlayerLeap()
     {

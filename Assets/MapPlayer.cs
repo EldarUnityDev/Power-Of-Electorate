@@ -11,11 +11,8 @@ public class MapPlayer : MonoBehaviour
     private void Start()
     {
         string currentPadName = PlayerPrefs.GetString("currentLevel");
-        Debug.Log("oi oi: "+ currentPadName);
         if(currentPadName != null)
         {
-            Debug.Log("pads.Count: " + References.pads.Count);
-
             for (int i = 0; i < References.pads.Count; i++)
             {
 

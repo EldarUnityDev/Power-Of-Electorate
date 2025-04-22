@@ -149,7 +149,6 @@ public class ElectorBehaviour : MonoBehaviour
         {
             if (agent.enabled) //если не в разговоре
             {
-                References.electors.Remove(this);
                 agent.destination = References.votingPost.transform.position; //идём к столу
                 if (Vector3.Distance(transform.position, References.votingPost.transform.position) < 1) //вручную считаем расстояние
                 {
@@ -161,6 +160,8 @@ public class ElectorBehaviour : MonoBehaviour
                         }
                         else { References.pointsForPlayerCandidate++; }
                         voted = true;
+                        References.electors.Remove(this);
+
                     }
                     timeToVote = false;
                     myLeaveAreaObject = References.leaveAreaPoints[Random.Range(0, References.leaveAreaPoints.Count)].myBody;
