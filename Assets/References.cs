@@ -7,7 +7,7 @@ public static class References
 {
     //Participants
     public static PlayerBehaviour thePlayer;
-    public static List<GameObject> votingPosts;
+    public static List<GameObject> votingPosts = new List<GameObject>();
     public static List<ElectorBehaviour> electors = new List<ElectorBehaviour>();
     public static List<ElectorBehaviour> targetElectors = new List<ElectorBehaviour>();
     //Navigation

@@ -39,6 +39,8 @@ public class ElectorBehaviour : MonoBehaviour
     Vector3 myAuraDef;
     public GameObject sliderGameObject;
     public GameObject questionMark;
+    public bool postChosen;
+    GameObject currentVotingPost;
     private void Awake()
     {
         References.electors.Add(this);
@@ -55,7 +57,7 @@ public class ElectorBehaviour : MonoBehaviour
     void Update()
     {
         //если могу ходить и не проголосовал - гуляю
-        if (agent.enabled && !voted)
+        if (agent.enabled && !timeToVote)
         {
             if (neutralMood && agent.remainingDistance < 2)
             {
@@ -176,8 +178,13 @@ public class ElectorBehaviour : MonoBehaviour
         {
             if (agent.enabled) //если не в разговоре
             {
-                GameObject currentVotingPost = References.votingPosts[Random.Range(0, References.votingPosts.Count)];
-                agent.destination = currentVotingPost.transform.position; //идём к столу
+                if (!postChosen)
+                {
+                    currentVotingPost = References.votingPosts[Random.Range(0, References.votingPosts.Count)];
+                    agent.destination = currentVotingPost.transform.position; //идём к столу
+                    postChosen = true;
+                }
+
                 if (Vector3.Distance(transform.position, currentVotingPost.transform.position) < 1) //вручную считаем расстояние
                 {
                     if (!voted)
