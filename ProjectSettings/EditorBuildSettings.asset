@@ -12,15 +12,27 @@ EditorBuildSettings:
     path: Assets/Scenes/Start Tutorial.unity
     guid: 484a96cf8f8d3284191c3ee57b26e0b4
   - enabled: 1
-    path: Assets/Scenes/1.1 - Hometown.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
     path: Assets/Scenes/Map.unity
     guid: 100cd7831ef67b74784bfd1f26b98db0
   - enabled: 1
-    path: Assets/Scenes/2 - Bigger Town.unity
-    guid: 12fcfdefcf57c984198118cf0473e235
+    path: Assets/Scenes/1.1 - Hometown.unity
+    guid: 8200df1e91575a44b8c9e1cbd166f6de
   - enabled: 1
     path: Assets/Scenes/1 - Hometown.unity
     guid: 7ab0c2d7c0482bc4ebdb035638229304
+  - enabled: 1
+    path: Assets/Scenes/2 - Bigger Town.unity
+    guid: 06f93e452a9b1f4429a9fd743d20e30c
+  - enabled: 1
+    path: "Assets/Scenes/3 - \u0421amp.unity"
+    guid: b0c8408e791868a468413ba1678d1c92
+  - enabled: 1
+    path: Assets/Scenes/4 - Co-op Town.unity
+    guid: 4811a842236ae394a8fa12603866a0f5
+  - enabled: 1
+    path: Assets/Scenes/5 - Big City.unity
+    guid: 90d782b61c626b34e84540778937eb70
+  - enabled: 1
+    path: Assets/Scenes/6 - The Results.unity
+    guid: dbd80c2707221414989bc4756e6477a5
   m_configObjects: {}

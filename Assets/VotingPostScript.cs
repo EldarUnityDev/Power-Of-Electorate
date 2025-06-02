@@ -6,6 +6,6 @@ public class VotingPostScript : MonoBehaviour
 {
     private void Awake()
     {
-        References.votingPost = this;
+        References.votingPosts.Add(gameObject);
     }
 }

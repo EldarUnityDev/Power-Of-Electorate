@@ -10,5 +10,10 @@ public class LeaveArea : MonoBehaviour
     void Start()
     {
         References.leaveAreaPoints.Add(this);
+        myBody.GetComponent<MeshRenderer>().enabled = false;
+    }
+    private void OnDestroy()
+    {
+        References.leaveAreaPoints.Remove(this);
     }
 }

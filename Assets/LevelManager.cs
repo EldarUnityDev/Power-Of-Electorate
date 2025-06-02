@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
+    public bool gameLevel;
     //Меню
     public GameObject menuGameObject;
     public GameObject tutorialText1; //*
     public GameObject tutorialText2; //Recomended
     //Беседа и после
+    public GameObject chatWindowObject;
+    public GameObject outroWindowObject;
+
     public TextMeshProUGUI chatWindow;
     public TextMeshProUGUI outroTextWindow;
 
@@ -22,6 +27,7 @@ public class LevelManager : MonoBehaviour
     public bool chatEnded;
     public GameObject nextButton;
     public GameObject goButton;
+    public GameObject welcomeTextButton;
     bool endScreenShown;
     //Финальный бой
     public float timeBeforeShowdown;
@@ -55,6 +61,15 @@ public class LevelManager : MonoBehaviour
     public GameObject cutsceneElectorSpawnPoint;
     public bool cutsceneStarted;
     public float timeOfCutscene;
+    public bool level1Scenario;
+    public bool campAlignmentOn;
+    public List<GameObject> finalSpawnPoints;
+
+    public GameObject pressETutorial;
+    public Button OneTapButton;
+
+    public string nextLevelName;
+    public int nextLevelNumber;
 
     private void Awake()
     {
@@ -62,6 +77,8 @@ public class LevelManager : MonoBehaviour
     }
     private void Start()
     {
+        Debug.Log("Number now " + PlayerPrefs.GetInt("highestLevel", nextLevelNumber));
+
         //В начале уровня сбрасываем изменения в навигации по этапам
         References.electionsEnded = false;
         graceTime = 1;
@@ -69,13 +86,37 @@ public class LevelManager : MonoBehaviour
 
         References.pointsForPlayerCandidate = 0;
         References.pointsForOppositeCandidate = 0;
-
-        PlayerPrefs.SetString("currentLevel", SceneManager.GetActiveScene().name);
+        if (gameLevel)
+        {
+            PlayerPrefs.SetString("currentLevel", SceneManager.GetActiveScene().name);
+        }
         PlayerPrefs.Save();
         levelNameForRestartButton = SceneManager.GetActiveScene().name;
 
         chatEnded = false; //no update
 
+    }
+    public void GoIntoFormation()
+    {
+        if (campAlignmentOn)
+        {
+            pressETutorial.SetActive(true); //показываем подсказку
+            for (int i = References.electors.Count - 1; i >= 0; i--)
+            {
+                References.electors[i].GetComponent<ElectorBehaviour>().PickFormationPoint(i);
+            }
+            goButton.SetActive(false); //EITHER
+            OneTapButton.interactable = false;//OR
+            Debug.Log("I did it");
+        }
+    }
+   
+    public void AllLookAtPlayer()
+    {
+        for (int i = References.electors.Count - 1; i >= 0; i--)
+        {
+            References.electors[i].GetComponent<ElectorBehaviour>().LookAtPlayer();
+        }
     }
     public void ShowNextLine()
     {
@@ -84,7 +125,7 @@ public class LevelManager : MonoBehaviour
         {
             chatWindow.text = chatLines[chatLineNumber];
         }
-        else
+        if (chatLineNumber == chatLines.Count-1)
         {
             nextButton.SetActive(false);
             goButton.SetActive(true);
@@ -99,14 +140,15 @@ public class LevelManager : MonoBehaviour
   
         if (endChatLineNumber < endChatLines.Count)
         {
-            chatWindow.text = endChatLines[endChatLineNumber];
+            outroTextWindow.text = endChatLines[endChatLineNumber];
         }
-        else
+
+        endChatLineNumber++;
+        if (endChatLineNumber == endChatLines.Count)
         {
             outroLineButton.SetActive(false);
             toMapButton.SetActive(true);
         }
-        endChatLineNumber++;
     }
     public void CreditsOnOff()
     {
@@ -121,9 +163,16 @@ public class LevelManager : MonoBehaviour
     }
     public void StartNewGame()
     {
-        SceneManager.LoadScene("Level 1");
+        SceneManager.LoadScene("Map");
         Time.timeScale = 1;
         References.gamesCount++;
+    }
+
+    public void ProgressReset()
+    {
+        PlayerPrefs.SetString("currentLevel", "1 - Hometown");
+        PlayerPrefs.SetInt("highestLevel", 1);
+        PlayerPrefs.SetInt("resultsReady", 0);
     }
     public void StartTurorial()
     {
@@ -148,14 +197,28 @@ public class LevelManager : MonoBehaviour
         SceneManager.LoadScene("Main Menu");
         Time.timeScale = 1;
     }
+    public void FinalScene()
+    {
+        SceneManager.LoadScene("6 - The Results");
+        Time.timeScale = 1;
+    }
     public void Map()
     {
-        SceneManager.LoadScene("Map");
+        //сохраняем только если игрок дошёл до кнопки
+        PlayerPrefs.SetString("nextLevel", nextLevelName);
+        int highestLevel = PlayerPrefs.GetInt("highestLevel");
+        if (highestLevel < nextLevelNumber)
+        {
+            PlayerPrefs.SetInt("highestLevel", nextLevelNumber);
+        }
+        PlayerPrefs.Save();
+
         Time.timeScale = 1;
+        SceneManager.LoadScene("Map");
     }
     private void Update()
     {
-        Debug.Log("ElectionersResults: " + References.electors.Count);
+      //  Debug.Log("ElectionersResults: " + References.electors.Count);
 
         //SCORE UPDATE
         if (blueScore != null)
@@ -181,7 +244,7 @@ public class LevelManager : MonoBehaviour
         //Переход на Этап 2 - голосование завершилось
         if (References.electors.Count == 0)// && !fightersSpawned)
         {
-            Debug.Log("Election Results: " + References.pointsForPlayerCandidate + ":" + References.pointsForOppositeCandidate);
+            //Debug.Log("Election Results: " + References.pointsForPlayerCandidate + ":" + References.pointsForOppositeCandidate);
             References.electionsEnded = true; //для файтеров
             if (!endScreenText.activeInHierarchy && !endScreenShown)
             {
@@ -230,27 +293,66 @@ public class LevelManager : MonoBehaviour
             timeOfCutscene -= Time.deltaTime;
             if (timeOfCutscene < 0)
             {
-                endScreenText.SetActive(true);
+                //endScreenText.SetActive(true);
                 outroLineButton.SetActive(true);
+                cutsceneStarted = false;
+            }
+        }
+
+        if (Input.GetButtonDown("Use") && campAlignmentOn)
+        {
+            if (pressETutorial.activeInHierarchy) //camp only
+            {
+                endScreenText.SetActive(false);
+                welcomeTextButton.SetActive(false);
+                pressETutorial.SetActive(false); //убираем подсказку
+                chatWindowObject.SetActive(true); 
+                nextButton.SetActive(true);
+
+                References.cameraTools.GetComponent<CameraTools>().moveToCutscene();
+                References.thePlayer.GetComponent<PlayerBehaviour>().enabled = false;
+                References.thePlayer.GetComponent<PlayerBehaviour>().myRigidbody.isKinematic = true;
+                References.playerSpot.SetActive(false);
             }
         }
     }
     public void CutsceneStart()
     {
+        //Выключаем кнопку, которая вызвала функцию
+        moveToCutButton.SetActive(false);
+        endScreenText.SetActive(false);
         //player loses control
         References.thePlayer.GetComponent<PlayerBehaviour>().enabled = false;
         //spawn electors
-        GameObject newElector = Instantiate(elector, cutsceneElectorSpawnPoint.transform.position, cutsceneElectorSpawnPoint.transform.rotation);
-        newElector.GetComponent<ElectorBehaviour>().neutralMood = false; //чтоб не бегал
+        if (level1Scenario)
+        {
+            for (int i = 0; i < finalSpawnPoints.Count; i++)
+            {
+                GameObject newElector = Instantiate(elector, finalSpawnPoints[i].transform.position, cutsceneElectorSpawnPoint.transform.rotation);
+                newElector.GetComponent<ElectorBehaviour>().neutralMood = false; //чтоб не бегал
+            }
+            agitator.SetActive(true);
+        }
         //camera pans
         References.cameraTools.moveToCutscene();
         //Agitator ON ?? 
         chatEnded = true;
         //Timer Start -> presentation done
         cutsceneStarted = true;
+        ShowNextFarewellLine(); //чтобы показать первую
+
         //Show text by kiosk guy "woa" "+time to move on to another location. Make sure to come buy to get paid before you hit the road"
         //(!) Maybe make another camera pointing at him
         //Go to map button ON
+    }
+    public void FarewellAfterLooking()
+    {
+        goButton.SetActive(false);
+        chatWindowObject.SetActive(false);
+        outroWindowObject.SetActive(true);
+        outroLineButton.SetActive(true);
+        ShowNextFarewellLine(); //чтобы показать первую
+
     }
     public void StartTheFight() //Запускается кнопкой NEXT
     {

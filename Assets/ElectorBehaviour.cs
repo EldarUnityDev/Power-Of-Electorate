@@ -9,9 +9,12 @@ using static UnityEngine.GraphicsBuffer;
 public class ElectorBehaviour : MonoBehaviour
 {
     public bool neutralMood;
+    public bool inTalk;
     public bool inTalkWithPlayer;
+    public bool inTalkWithFriendly;
     //public bool inTalkWithEnemy;
     NavMeshAgent agent;
+    public float defTalkTime;
     public float talkTime;
     public float turnSpeed;
     public float turnSpeedMultiplier;
@@ -60,8 +63,7 @@ public class ElectorBehaviour : MonoBehaviour
             }
         }
 
-        //Взаимодействие с игроком
-        //if (!agent.enabled) //значит кто-то остановил, если игрок, то измеряем дистанцию
+        //Направляем знак вопроса в камеру
         if (questionMark.activeInHierarchy)
         {
             //Quaternion lookRotation = Camera.main.transform.rotation;
@@ -95,7 +97,10 @@ public class ElectorBehaviour : MonoBehaviour
             //Check distance
             if (Vector3.Distance(transform.position, References.thePlayer.transform.position) > talkDistance)
             {
+                //
                 References.thePlayer.GetComponent<PlayerBehaviour>().canPromote = true;
+                //
+
                 StartCoroutine(QuestionMarkAppear()); // Animation
                 questionMark.SetActive(true);
                 //// Rewind
@@ -105,7 +110,7 @@ public class ElectorBehaviour : MonoBehaviour
                 }
                 GetComponent<SliderForConversion>().ShowFraction(1 - talkTime / 2);
 
-                if(turnSpeedMultiplier > 2)
+                if (turnSpeedMultiplier > 2)
                 {
                     turnSpeedMultiplier -= Time.deltaTime; //
                 }
@@ -132,6 +137,28 @@ public class ElectorBehaviour : MonoBehaviour
             }
         }
 
+        //FRIENDLY LAST FEATURE
+        if (inTalkWithFriendly)
+        {
+            //Rotate throughout the whole event
+            Vector3 lateralOffset = transform.right * Time.deltaTime;
+            transform.LookAt(transform.position + transform.forward + lateralOffset * turnSpeed * turnSpeedMultiplier);
+
+            talkTime -= Time.deltaTime;
+            GetComponent<SliderForConversion>().ShowFraction(1 - talkTime / 2);
+            turnSpeedMultiplier += Time.deltaTime; //ускоряем
+
+            if (talkTime < 0)
+            {
+                TurnMe(References.thePlayer.gameObject);
+                inTalkWithFriendly = false; // закончили разговор
+                LeaveTalk();
+            }
+
+        }
+
+
+
         //voting mechanics
         //если меня 1 раз переключили, иду голосовать после короткой задержки
         if (!myBody.activeInHierarchy && !voted && timeBeforeVote > 0)
@@ -149,8 +176,9 @@ public class ElectorBehaviour : MonoBehaviour
         {
             if (agent.enabled) //если не в разговоре
             {
-                agent.destination = References.votingPost.transform.position; //идём к столу
-                if (Vector3.Distance(transform.position, References.votingPost.transform.position) < 1) //вручную считаем расстояние
+                GameObject currentVotingPost = References.votingPosts[Random.Range(0, References.votingPosts.Count)];
+                agent.destination = currentVotingPost.transform.position; //идём к столу
+                if (Vector3.Distance(transform.position, currentVotingPost.transform.position) < 1) //вручную считаем расстояние
                 {
                     if (!voted)
                     {
@@ -187,8 +215,12 @@ public class ElectorBehaviour : MonoBehaviour
     }
     public void TurnMe(GameObject turner)
     {
+        talkTime = 2;
+
+        References.targetElectors.Remove(this);
+
         myBody.SetActive(false);
-        if (turner.GetComponent<PlayerBehaviour>() != null)
+        if (turner.GetComponent<PlayerBehaviour>() != null || turner.GetComponent<FriendlyAgitatorBehaviour>() != null)
         {
             playerCandidateBody.SetActive(true);
             if (enemyCandidateBody.activeInHierarchy)
@@ -196,7 +228,7 @@ public class ElectorBehaviour : MonoBehaviour
                 enemyCandidateBody.SetActive(false);
                 if (References.targetElectors.Count != 0)//если игрок обращает не последнего
                 {
-                    References.targetElectors.Add(this);
+                    //   References.targetElectors.Add(this);
                 }
             }
         }
@@ -208,39 +240,53 @@ public class ElectorBehaviour : MonoBehaviour
     }
     public void JoinTalk(GameObject interlocutor)
     {
+        References.targetElectors.Remove(this);
+
         agent.enabled = false;
-        auraOutline.SetActive(true);
+        sliderGameObject.SetActive(true); //показываем прогресс любой беседы
 
         if (interlocutor.GetComponent<PlayerBehaviour>() != null)
         {
             //activate Player CIRCLE
-            //playerAura.SetActive(true);
+            //playerAura.SetActive(true); //аура не нужна
+            auraOutline.SetActive(true);
+
             References.thePlayer.canPromote = false;
             inTalkWithPlayer = true;
-            sliderGameObject.SetActive(true);
         }
-        else
+        if (interlocutor.GetComponent<FriendlyAgitatorBehaviour>() != null)
+        {
+            inTalkWithFriendly = true;                                                                    //ЗДЕСЬ
+        }
+        if (interlocutor.GetComponent<AgitatorBehaviour>() != null)
         { //activate Enemy Circle
-            enemyAura.SetActive(true);
+          //  enemyAura.SetActive(true);
         }
     }
 
     public void LeaveTalk()
     {
+        // References.targetElectors.Add(this);
 
         auraOutline.SetActive(false);
+        enemyAura.SetActive(false);
         sliderGameObject.SetActive(false);
         questionMark.SetActive(false);
         agent.enabled = true;
+
         if (inTalkWithPlayer)
         {
-            playerAura.SetActive(false);
+            //playerAura.SetActive(false);
             inTalkWithPlayer = false;
             References.thePlayer.canPromote = true;
             References.thePlayer.turnSpeedMultiplier = 3;
         }
-        else { enemyAura.SetActive(false); }
-        talkTime = 2;  //сбрасываем таймер для следующего разговора
+        if (inTalkWithFriendly)
+        {
+            inTalkWithFriendly = false;
+        }
+
+        talkTime = defTalkTime;  //сбрасываем таймер для следующего разговора
         turnSpeedMultiplier = 2;
         if (voted)
         {
@@ -288,9 +334,28 @@ public class ElectorBehaviour : MonoBehaviour
         LeaveTalk();
     }
 
+    //Cutscene Mechanics
+    public void PickFormationPoint(int pointNumber)
+    {
+        if (References.spawnPoints != null)
+        {
+            agent.destination = References.spawnPoints[pointNumber].transform.position;
+        }
+    }
+
     private void OnDestroy()
     {
         References.electors.Remove(this);
         References.targetElectors.Remove(this);
+    }
+    public void LookAtPlayer()
+    {
+        //where to go = destination - the origin
+        Vector3 playerPosition = References.thePlayer.transform.position;
+        Vector3 vectorToPlayer = playerPosition - transform.position;
+
+        // ourRigidBody.velocity = vectorToPlayer.normalized * enemySpeed;
+        Vector3 playerPositionAtOurHeight = new Vector3(playerPosition.x, transform.position.y, playerPosition.z);
+        transform.LookAt(playerPositionAtOurHeight);
     }
 }

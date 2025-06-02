@@ -7,23 +7,27 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static UnityEditor.ShaderData;
 
-public class EventClick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class ClickPadScript : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public GameObject mapPoint;    
     public GameObject mapPlayer;
     public GameObject startLevelButton;
-    public string levelToStartName; 
-    
+    public string levelToStartName;
+    public bool unlocked;
+
+    public GameObject myLockedBody;
+    public GameObject myUnockedBody;
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        if(mapPoint != null && mapPoint!= References.currentPad)
+        if(mapPoint != null && mapPoint!= References.currentPad && unlocked)
         {
             if (!mapPoint.activeInHierarchy)
             {
                 //turn off current outline
                 if (References.currentlyHighlightedPad != null)
                 {
-                    References.currentlyHighlightedPad.GetComponent<EventClick>().mapPoint.SetActive(false);
+                    References.currentlyHighlightedPad.GetComponent<ClickPadScript>().mapPoint.SetActive(false);
                     startLevelButton.SetActive(false);
 
                     References.currentlyHighlightedPad = null;
@@ -31,7 +35,6 @@ public class EventClick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 
                 mapPoint.SetActive(true);
                 References.currentlyHighlightedPad = gameObject;
-
             }
             else
             {
@@ -75,6 +78,19 @@ public class EventClick : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
     void Start()
     {
 
+    }
+    public void RefreshStatus()
+    {
+        if (unlocked)
+        {
+            myUnockedBody.gameObject.SetActive(true);
+            myLockedBody.gameObject.SetActive(false);
+        }
+        else
+        {
+            myUnockedBody.gameObject.SetActive(false);
+            myLockedBody.gameObject.SetActive(true);
+        }
     }
 
     // Update is called once per frame

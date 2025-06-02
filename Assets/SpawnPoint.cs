@@ -13,4 +13,8 @@ public class SpawnPoint : MonoBehaviour
     {
         spawnPoint.GetComponent<MeshRenderer>().enabled = false;
     }
+    private void OnDestroy()
+    {
+        References.spawnPoints.Remove(this);
+    }
 }

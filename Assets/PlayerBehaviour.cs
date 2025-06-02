@@ -8,7 +8,7 @@ public class PlayerBehaviour : MonoBehaviour
 {
     public float upForce;
     public float forwardForce;
-    Rigidbody myRigidbody;
+    public Rigidbody myRigidbody;
     public float speed;
     public float turnSpeed;
     public float turnSpeedMultiplier;
@@ -20,6 +20,9 @@ public class PlayerBehaviour : MonoBehaviour
     //public bool leaping;
     //public float leapingTimer;
 
+    //
+    public GameObject aimAssist;
+    public GameObject myPushTarget;
     private void Awake()
     {
         References.thePlayer = this;
@@ -85,6 +88,15 @@ public class PlayerBehaviour : MonoBehaviour
         {
             agent.enabled = true;
         }
+        if (References.levelManager.agitator != null)
+        {
+            if (Input.GetButtonDown("Fire1") && Vector3.Distance(transform.position, References.levelManager.agitator.transform.position) <= 3)
+            {
+
+                References.levelManager.agitator.GetComponent<AgitatorBehaviour>().GetPushed();
+
+            }
+        }
 
         //Shooting
         Ray rayFromCameraToCursor = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -114,6 +126,84 @@ public class PlayerBehaviour : MonoBehaviour
              }
 
          }*/
+
+        //Pushing
+        GameObject nearestPushable = null;
+        float nearestDistanceForPushable = 3;
+
+        foreach (GameObject pushable in References.pushables)
+        {
+            if(References.thePlayer != null) //проверка ради кнопки RESTART
+            {
+                //how far is this one from the player?
+                float thisDistance = Vector3.Distance(transform.position, pushable.transform.position);
+                //is it closer than anything else we've found?
+                if (thisDistance <= nearestDistanceForPushable)
+                {
+                    //if it's THIS now it's the closest one
+                    nearestPushable = pushable;
+                    nearestDistanceForPushable = thisDistance;
+                }
+            }
+        }
+
+        if (nearestPushable != null)
+        {
+            SwitchMyPushTarget(nearestPushable);
+            //Толкание
+            if (Input.GetButtonDown("Fire1") && Vector3.Distance(transform.position, nearestPushable.transform.position) <= 3)
+            {
+                if (nearestPushable.GetComponent<AgitatorBehaviour>() != null)
+                {
+                    nearestPushable.GetComponent<AgitatorBehaviour>().GetPushed();
+                }
+                if (nearestPushable.GetComponent<FriendlyAgitatorBehaviour>() != null)
+                {
+                    nearestPushable.GetComponent<FriendlyAgitatorBehaviour>().GetPushed();
+                }
+            }
+        }
+        if (myPushTarget != null && Vector3.Distance(transform.position, myPushTarget.transform.position) > 3)
+        {
+            if (myPushTarget.GetComponent<AgitatorBehaviour>() != null)
+            {
+                myPushTarget.GetComponent<AgitatorBehaviour>().myOutline.SetActive(false);            //Подсветка ВЫКЛ
+            }
+            if (myPushTarget.GetComponent<FriendlyAgitatorBehaviour>() != null)
+            {
+                myPushTarget.GetComponent<FriendlyAgitatorBehaviour>().myOutline.SetActive(false);            //Подсветка ВЫКЛ
+            }
+        }
+    }
+    public void SwitchMyPushTarget(GameObject nearestTarget)
+    {
+
+        if (myPushTarget != null)
+        {
+            if (myPushTarget.GetComponent<AgitatorBehaviour>() != null)
+            {
+                myPushTarget.GetComponent<AgitatorBehaviour>().myOutline.SetActive(false);            //Подсветка ВЫКЛ
+            }
+            if (myPushTarget.GetComponent<FriendlyAgitatorBehaviour>() != null)
+            {
+                myPushTarget.GetComponent<FriendlyAgitatorBehaviour>().myOutline.SetActive(false);            //Подсветка ВЫКЛ
+            }
+        }
+
+        myPushTarget = nearestTarget;
+
+        if (aimAssist != null)
+        {
+            aimAssist.transform.position = myPushTarget.transform.position + Vector3.up;
+        }
+        if (myPushTarget.GetComponent<AgitatorBehaviour>() != null)
+        {
+            myPushTarget.GetComponent<AgitatorBehaviour>().myOutline.SetActive(true);            //Подсветка ВКЛ
+        }
+        if (myPushTarget.GetComponent<FriendlyAgitatorBehaviour>() != null)
+        {
+            myPushTarget.GetComponent<FriendlyAgitatorBehaviour>().myOutline.SetActive(true);            //Подсветка ВЫКЛ
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -124,6 +214,10 @@ public class PlayerBehaviour : MonoBehaviour
             leapingTimer = 0;
             myRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
         }*/
+    }
+    private void OnDestroy()
+    {
+        References.thePlayer = null;
     }
     private IEnumerator PlayerLeap()
     {

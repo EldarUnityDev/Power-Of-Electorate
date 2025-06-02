@@ -7,7 +7,7 @@ public static class References
 {
     //Participants
     public static PlayerBehaviour thePlayer;
-    public static VotingPostScript votingPost;
+    public static List<GameObject> votingPosts;
     public static List<ElectorBehaviour> electors = new List<ElectorBehaviour>();
     public static List<ElectorBehaviour> targetElectors = new List<ElectorBehaviour>();
     //Navigation
@@ -15,6 +15,9 @@ public static class References
     public static List<LeaveArea> leaveAreaPoints = new List<LeaveArea>();
     public static int pointsForPlayerCandidate;
     public static int pointsForOppositeCandidate;
+    public static GameObject playerSpot;
+    public static GameObject playerSpotlight;
+
     //Experience Management
     public static int gamesCount = 0;
     //Level Progress Tracking
@@ -29,5 +32,7 @@ public static class References
     public static List<GameObject> pads = new List<GameObject>();
     //Camera
     public static CameraTools cameraTools;
+    //Pushing
+    public static List<GameObject> pushables = new List<GameObject>();
 
 }
