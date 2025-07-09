@@ -41,6 +41,7 @@ public class ElectorBehaviour : MonoBehaviour
     public GameObject questionMark;
     public bool postChosen;
     GameObject currentVotingPost;
+    public bool turnable;
     private void Awake()
     {
         References.electors.Add(this);
@@ -57,7 +58,7 @@ public class ElectorBehaviour : MonoBehaviour
     void Update()
     {
         //если могу ходить и не проголосовал - гул€ю
-        if (agent.enabled && !timeToVote)
+        if (agent.enabled && !timeToVote && !voted)
         {
             if (neutralMood && agent.remainingDistance < 2)
             {
@@ -247,34 +248,37 @@ public class ElectorBehaviour : MonoBehaviour
     }
     public void JoinTalk(GameObject interlocutor)
     {
-        References.targetElectors.Remove(this);
-
-        agent.enabled = false;
-        sliderGameObject.SetActive(true); //показываем прогресс любой беседы
-
-        if (interlocutor.GetComponent<PlayerBehaviour>() != null)
+        if (turnable)
         {
-            //activate Player CIRCLE
-            //playerAura.SetActive(true); //аура не нужна
-            auraOutline.SetActive(true);
+            References.targetElectors.Remove(this);
 
-            References.thePlayer.canPromote = false;
-            inTalkWithPlayer = true;
+            agent.enabled = false;
+            sliderGameObject.SetActive(true); //показываем прогресс любой беседы
+
+            if (interlocutor.GetComponent<PlayerBehaviour>() != null)
+            {
+                //activate Player CIRCLE
+                //playerAura.SetActive(true); //аура не нужна
+                auraOutline.SetActive(true);
+
+                References.thePlayer.canPromote = false;
+                inTalkWithPlayer = true;
+            }
+            if (interlocutor.GetComponent<FriendlyAgitatorBehaviour>() != null)
+            {
+                inTalkWithFriendly = true;                                                                    //«ƒ≈—№
+            }
+            if (interlocutor.GetComponent<AgitatorBehaviour>() != null)
+            { //activate Enemy Circle
+              //  enemyAura.SetActive(true);
+            }
         }
-        if (interlocutor.GetComponent<FriendlyAgitatorBehaviour>() != null)
-        {
-            inTalkWithFriendly = true;                                                                    //«ƒ≈—№
-        }
-        if (interlocutor.GetComponent<AgitatorBehaviour>() != null)
-        { //activate Enemy Circle
-          //  enemyAura.SetActive(true);
-        }
+        
     }
 
     public void LeaveTalk()
     {
         // References.targetElectors.Add(this);
-
         auraOutline.SetActive(false);
         enemyAura.SetActive(false);
         sliderGameObject.SetActive(false);
@@ -299,6 +303,10 @@ public class ElectorBehaviour : MonoBehaviour
         {
             myLeaveAreaObject = References.leaveAreaPoints[Random.Range(0, References.leaveAreaPoints.Count)].myBody;
             agent.destination = myLeaveAreaObject.transform.position;
+        }
+        if (timeToVote)
+        {
+            agent.destination = currentVotingPost.transform.position;            
         }
     }
     private IEnumerator QuestionMarkAppear()

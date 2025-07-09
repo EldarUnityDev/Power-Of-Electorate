@@ -1470,6 +1470,8 @@ MonoBehaviour:
   talkAbandonTimer: 0
   sliderGameObject: {fileID: 2876464131430602073}
   questionMark: {fileID: 3569284223211622411}
+  postChosen: 0
+  turnable: 1
 --- !u!114 &4050185915909246633
 MonoBehaviour:
   m_ObjectHideFlags: 0

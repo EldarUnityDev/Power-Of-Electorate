@@ -11,4 +11,8 @@ public class VotingPostScript : MonoBehaviour
     {
         References.votingPosts.Add(gameObject);
     }
+    private void OnDestroy()
+    {
+        References.votingPosts.Remove(gameObject);
+    }
 }

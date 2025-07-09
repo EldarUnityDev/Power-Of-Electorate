@@ -1,5 +1,7 @@
+using GLTF.Schema;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,8 +19,18 @@ public class TheFaithfulPush : MonoBehaviour
     public GameObject outline;
     public GameObject buttonToDisable;
     public int counterForOutline;
+    public GameObject prompt;
+    public GameObject finalText;
+    public TextMeshProUGUI text;
+    public bool cutsceneEnded;
+    public bool goodbyeShown;
+    AudioSource audioSource;
+    AudioSource tunkAudio;
+    public GameObject tunkContainer;
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+        tunkAudio = tunkContainer.GetComponent<AudioSource>();
         myRigidbody = GetComponent<Rigidbody>();
         BlackScreenOff();
         counterForOutline = 0;
@@ -50,6 +62,7 @@ public class TheFaithfulPush : MonoBehaviour
         Time.fixedDeltaTime = 0.02F * Time.timeScale;
         myRigidbody.AddForce((transform.position - pusher.transform.position).normalized * knockBackForce + transform.up * upForce); //-player position
         turning = true;
+        tunkAudio.Play();
     }
     public void OutlineSwitch()
     {
@@ -70,5 +83,37 @@ public class TheFaithfulPush : MonoBehaviour
             transform.LookAt(transform.position + transform.forward + transform.up * Time.deltaTime * 2);
             turnTimer -= Time.deltaTime;
         }
+        if(turning && turnTimer <= 0)
+        {
+            StartCoroutine(CutsceneCoroutine());
+            turning = false;
+        }
+        if (cutsceneEnded)
+        {
+            if (Input.GetButtonDown("Menu") || Input.GetButtonDown("Use") || Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.Space))
+            {
+                if (!goodbyeShown)
+                {
+                    text.text = "THANKS FOR PLAYING";
+                    goodbyeShown = true;
+                }
+                else
+                {
+                    References.levelManager.MainMenu();
+                }
+            }
+        }
+    }
+    IEnumerator CutsceneCoroutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = 0.02F * Time.timeScale;
+        BlackScreenOn();
+        finalText.SetActive(true);
+        audioSource.Play();
+        yield return new WaitForSeconds(1);
+        prompt.SetActive(true);
+        cutsceneEnded = true;
     }
 }

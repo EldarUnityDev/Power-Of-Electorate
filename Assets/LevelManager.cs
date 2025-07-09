@@ -26,6 +26,7 @@ public class LevelManager : MonoBehaviour
     public int chatLineNumber;
     public bool chatEnded;
     public GameObject nextButton;
+    public GameObject nextButtonSupport;
     public GameObject goButton;
     public GameObject welcomeTextButton;
     bool endScreenShown;
@@ -70,15 +71,22 @@ public class LevelManager : MonoBehaviour
 
     public string nextLevelName;
     public int nextLevelNumber;
-
+    public GameObject vanGameObj;
+    public int isGameStarted;
     private void Awake()
     {
         References.levelManager = this;
     }
     private void Start()
     {
+        isGameStarted = 0;
         Debug.Log("Number now " + PlayerPrefs.GetInt("highestLevel", nextLevelNumber));
-
+        /*PlayerPrefs.GetInt("isGameStarted", isGameStarted);
+        if(isGameStarted == 0)
+        {
+            PlayerPrefs.SetInt("isGameStarted", 1);
+            ProgressReset();
+        }*/
         //В начале уровня сбрасываем изменения в навигации по этапам
         References.electionsEnded = false;
         graceTime = 1;
@@ -110,7 +118,7 @@ public class LevelManager : MonoBehaviour
             Debug.Log("I did it");
         }
     }
-   
+
     public void AllLookAtPlayer()
     {
         for (int i = References.electors.Count - 1; i >= 0; i--)
@@ -125,19 +133,24 @@ public class LevelManager : MonoBehaviour
         {
             chatWindow.text = chatLines[chatLineNumber];
         }
-        if (chatLineNumber == chatLines.Count-1)
+        if (chatLineNumber == chatLines.Count - 1)
         {
+            if (nextButtonSupport != null)
+            {
+                nextButtonSupport.SetActive(false);
+            }
             nextButton.SetActive(false);
             goButton.SetActive(true);
         }
     }
     public void ShowNextFarewellLine()                 //THIS
     {
+
         if (endScreenText.activeInHierarchy)
         {
             endScreenText.SetActive(false);
         }
-  
+
         if (endChatLineNumber < endChatLines.Count)
         {
             outroTextWindow.text = endChatLines[endChatLineNumber];
@@ -146,8 +159,17 @@ public class LevelManager : MonoBehaviour
         endChatLineNumber++;
         if (endChatLineNumber == endChatLines.Count)
         {
-            outroLineButton.SetActive(false);
+            if (outroLineButton != null)
+            {
+                outroLineButton.SetActive(false);
+            }
             toMapButton.SetActive(true);
+
+            //Door Closing Animation
+            if (vanGameObj != null)
+            {
+                vanGameObj.GetComponent<VanScript>().CloseDoor();
+            }
         }
     }
     public void CreditsOnOff()
@@ -171,6 +193,8 @@ public class LevelManager : MonoBehaviour
     public void ProgressReset()
     {
         PlayerPrefs.SetString("currentLevel", "1 - Hometown");
+        PlayerPrefs.SetString("nextLevel", "1.1 - Hometown");
+
         PlayerPrefs.SetInt("highestLevel", 1);
         PlayerPrefs.SetInt("resultsReady", 0);
     }
@@ -214,11 +238,12 @@ public class LevelManager : MonoBehaviour
         PlayerPrefs.Save();
 
         Time.timeScale = 1;
+
         SceneManager.LoadScene("Map");
     }
     private void Update()
     {
-      //  Debug.Log("ElectionersResults: " + References.electors.Count);
+        //  Debug.Log("ElectionersResults: " + References.electors.Count);
 
         //SCORE UPDATE
         if (blueScore != null)
@@ -250,7 +275,7 @@ public class LevelManager : MonoBehaviour
             {
                 endScreenShown = true;
                 timerBeforeShowingMenu -= Time.deltaTime;
-                if(timerBeforeShowingMenu < 0)
+                if (timerBeforeShowingMenu < 0)
                 {
                     endScreenText.SetActive(true);
                     moveToCutButton.SetActive(true);
@@ -294,7 +319,10 @@ public class LevelManager : MonoBehaviour
             if (timeOfCutscene < 0)
             {
                 //endScreenText.SetActive(true);
-                outroLineButton.SetActive(true);
+                if (outroLineButton != null) //just for the last level where there is only 1 line
+                {
+                    outroLineButton.SetActive(true);
+                }
                 cutsceneStarted = false;
             }
         }
@@ -306,13 +334,14 @@ public class LevelManager : MonoBehaviour
                 endScreenText.SetActive(false);
                 welcomeTextButton.SetActive(false);
                 pressETutorial.SetActive(false); //убираем подсказку
-                chatWindowObject.SetActive(true); 
+                chatWindowObject.SetActive(true);
                 nextButton.SetActive(true);
 
                 References.cameraTools.GetComponent<CameraTools>().moveToCutscene();
                 References.thePlayer.GetComponent<PlayerBehaviour>().enabled = false;
                 References.thePlayer.GetComponent<PlayerBehaviour>().myRigidbody.isKinematic = true;
                 References.playerSpot.SetActive(false);
+
             }
         }
     }
@@ -357,7 +386,7 @@ public class LevelManager : MonoBehaviour
     public void StartTheFight() //Запускается кнопкой NEXT
     {
         //Agitator body switch
-        if(agitator != null)
+        if (agitator != null)
         {
             agitator.GetComponent<FighterScript>().redBody.SetActive(true);
             agitator.GetComponent<FighterScript>().checkMyTeam();

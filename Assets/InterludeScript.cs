@@ -13,6 +13,8 @@ public class InterludeScript : MonoBehaviour
     public GameObject nextButton;
 
     public GameObject promptText;
+    public GameObject head;
+    public GameObject mainCam;
 
     public bool interludeShown;
     void Start()
@@ -35,17 +37,24 @@ public class InterludeScript : MonoBehaviour
     }
     public void ShowInterlude()
     {
-        Time.timeScale = 0.05f;                      //*stop time
+        Time.timeScale = 0.05f;                  //*stop time
+        Time.fixedDeltaTime = 0.02F * Time.timeScale;
+
+        head.SetActive(true);
+        head.transform.LookAt(mainCam.transform.position);
         chatWindowObject.SetActive(true);        //show text "oh he's fast
         nextButton.SetActive(true);              //enable button "next"
         ShowNextLine();
     }
     public void EndInterlude()
     {
+        head.SetActive(false);
         chatWindowObject.SetActive(false);        //hide text "oh he's fast
         nextButton.SetActive(false);              //disable button "next"
         promptText.SetActive(true);
         Time.timeScale = 1;    //resume time
+        Time.fixedDeltaTime = 0.02F * Time.timeScale;
+
     }
     public void HidePrompt()
     {

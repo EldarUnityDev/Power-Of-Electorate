@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting.ReorderableList;
+//using Unity.VisualScripting.ReorderableList;
 using UnityEngine;
 
 public class CameraTools : MonoBehaviour
 {
     public float desiredRotationXA;
     public float desiredRotationXB;
+
+    public Vector3 desiredRotationA;
+    public Vector3 desiredRotationB;
 
     public Vector3 pointA;
     public Vector3 pointB;
@@ -34,16 +37,16 @@ public class CameraTools : MonoBehaviour
     {
         moving = true;
         StopAllCoroutines();
-        StartCoroutine(SmoothLerp(camTime/2, pointA, desiredRotationXA));  // 3f is the time in seconds the movement will take.
+        StartCoroutine(SmoothLerp(camTime/2, pointA, desiredRotationA));  // 3f is the time in seconds the movement will take.
     }
     public void moveToCutscene()
     {
         moving = true;
         StopAllCoroutines();
-        StartCoroutine(SmoothLerp(camTime, pointB, desiredRotationXB));  // 3f is the time in seconds the movement will take.
+        StartCoroutine(SmoothLerp(camTime, pointB, desiredRotationB));  // 3f is the time in seconds the movement will take.
     }
 
-    private IEnumerator SmoothLerp(float time, Vector3 destination, float desiredRotation)
+    private IEnumerator SmoothLerp(float time, Vector3 destination, Vector3 desiredRotation)
     {
         Vector3 startingPos = transform.position;
 
@@ -55,9 +58,9 @@ public class CameraTools : MonoBehaviour
             //transform.position = Vector3.Lerp(startingPos, destination, (elapsedTime / time));
             transform.position = Vector3.Lerp(startingPos, destination, (elapsedTime / time));
             transform.eulerAngles = new Vector3(
-    Mathf.LerpAngle(transform.eulerAngles.x, desiredRotation, (elapsedTime / time)),
-    Mathf.LerpAngle(transform.eulerAngles.y, 0, (elapsedTime / time)),
-    Mathf.LerpAngle(transform.eulerAngles.z, 0, (elapsedTime / time)));
+    Mathf.LerpAngle(transform.eulerAngles.x, desiredRotation.x, (elapsedTime / time)),
+    Mathf.LerpAngle(transform.eulerAngles.y, desiredRotation.y, (elapsedTime / time)),
+    Mathf.LerpAngle(transform.eulerAngles.z, desiredRotation.z, (elapsedTime / time)));
 
             // transform.rotation = Quaternion.Lerp(transform.rotation, desiredRotation, (elapsedTime / time));
             elapsedTime += Time.deltaTime;

@@ -1,3 +1,4 @@
+using GLTF.Schema;
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,12 +24,17 @@ public class PlayerBehaviour : MonoBehaviour
     //
     public GameObject aimAssist;
     public GameObject myPushTarget;
+
+    AudioSource pushAudioSource;
+
     private void Awake()
     {
         References.thePlayer = this;
     }
     void Start()
     {
+        pushAudioSource = GetComponent<AudioSource>();
+
         myRigidbody = GetComponent<Rigidbody>();
         canPromote = true;
 
@@ -60,7 +66,7 @@ public class PlayerBehaviour : MonoBehaviour
             //how far is this one from the player?
             float thisDistance = Vector3.Distance(transform.position, thisElector.transform.position);
             //is it closer than anything else we've found?
-            if (thisDistance <= nearestDistance)
+            if (thisDistance <= nearestDistance && !thisElector.GetComponent<ElectorBehaviour>().playerCandidateBody.activeInHierarchy) //BIG CHANGE
             {
                 //if it's THIS now it's the closest one
                 nearestElectorSoFar = thisElector;
@@ -88,7 +94,7 @@ public class PlayerBehaviour : MonoBehaviour
         {
             agent.enabled = true;
         }
-        if (References.levelManager.agitator != null)
+        /*if (References.levelManager.agitator != null)
         {
             if (Input.GetButtonDown("Fire1") && Vector3.Distance(transform.position, References.levelManager.agitator.transform.position) <= 3)
             {
@@ -96,7 +102,7 @@ public class PlayerBehaviour : MonoBehaviour
                 References.levelManager.agitator.GetComponent<AgitatorBehaviour>().GetPushed();
 
             }
-        }
+        }*/
 
         //Shooting
         Ray rayFromCameraToCursor = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -151,7 +157,7 @@ public class PlayerBehaviour : MonoBehaviour
         {
             SwitchMyPushTarget(nearestPushable);
             //Толкание
-            if (Input.GetButtonDown("Fire1") && Vector3.Distance(transform.position, nearestPushable.transform.position) <= 3)
+            if (Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.Space) && Vector3.Distance(transform.position, nearestPushable.transform.position) <= 3)
             {
                 if (nearestPushable.GetComponent<AgitatorBehaviour>() != null)
                 {
@@ -161,6 +167,8 @@ public class PlayerBehaviour : MonoBehaviour
                 {
                     nearestPushable.GetComponent<FriendlyAgitatorBehaviour>().GetPushed();
                 }
+                pushAudioSource.Play();
+
             }
         }
         if (myPushTarget != null && Vector3.Distance(transform.position, myPushTarget.transform.position) > 3)

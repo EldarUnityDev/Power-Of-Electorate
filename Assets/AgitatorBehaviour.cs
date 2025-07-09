@@ -16,6 +16,7 @@ public class AgitatorBehaviour : MonoBehaviour
     public bool readyToWork;
     public bool justWalking;
     public float breakTimer;
+    public float breakBetweenVoters;
     public float turnSpeed;
     public float turnSpeedMultiplier;
     public float flightSpeedMultiplier;
@@ -128,7 +129,7 @@ public class AgitatorBehaviour : MonoBehaviour
                 currentTalkTime = talkTime;  //сбрасываем таймер для следующего разговора
                 agent.enabled = true;
                 readyToWork = false; // делаем перерыв
-                breakTimer = 1;
+                breakTimer = breakBetweenVoters;
                 GoToRandomNavPoint();
                 if (turnSpeedMultiplier > 7)
                 {

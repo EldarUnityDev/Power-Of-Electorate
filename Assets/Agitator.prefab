@@ -62,6 +62,7 @@ MonoBehaviour:
   readyToWork: 0
   justWalking: 0
   breakTimer: 2
+  breakBetweenVoters: 1
   turnSpeed: 4
   turnSpeedMultiplier: 5
   flightSpeedMultiplier: 1
