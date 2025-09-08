@@ -214,7 +214,6 @@ public class AgitatorBehaviour : MonoBehaviour
     }
     public void GetPushed()
     {
-        Debug.Log("PIZDA");
         if (knockable) //&& DISTANCE 
         {
             if (talking)
